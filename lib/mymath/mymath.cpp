@@ -31,7 +31,7 @@ OVERLOAD_OPERATOR_BOOL(!=)
 MaxAlgebra
 operator+(const MaxAlgebra& lhs, const MaxAlgebra& rhs)
 {
-  return MaxAlgebra(std::max(lhs.value, rhs.value));
+  return std::max(lhs.value, rhs.value);
 }
 
 std::ostream&
@@ -42,30 +42,30 @@ operator<<(std::ostream& out, const MaxAlgebra& val)
   return out;
 }
 
-MaxAlgebra&
-MaxAlgebra::operator=(const MaxAlgebra rhs)
+MaxAlgebra
+MaxAlgebra::operator=(const MaxAlgebra& rhs)
 {
   this->value = rhs.value;
   return *this;
 }
 
 MaxAlgebra&
-MaxAlgebra::operator+=(const MaxAlgebra rhs)
+MaxAlgebra::operator+=(const MaxAlgebra& rhs)
 {
-  this->value = (*this + rhs).value;
+  this->value = std::max(this->value, rhs.value);
   return *this;
 }
 
-MaxAlgebra&
-MaxAlgebra::operator*=(const MaxAlgebra rhs)
+MaxAlgebra
+MaxAlgebra::operator*=(const MaxAlgebra& rhs)
 {
-  value = (*this * rhs).value;
+  this->value *= rhs.value;
   return *this;
 }
 
-MaxAlgebra&
-MaxAlgebra::operator/=(const MaxAlgebra rhs)
+MaxAlgebra
+MaxAlgebra::operator/=(const MaxAlgebra& rhs)
 {
-  value = (*this / rhs).value;
+  this->value /= rhs.value;
   return *this;
 }

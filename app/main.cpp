@@ -12,11 +12,11 @@ using Matrix44 = Matrix<MaxAlgebra, 4, 4>;
 using MatrixDn = Matrix<MaxAlgebra, Dynamic, Dynamic>;
 using M = MaxAlgebra;
 
-ex
+numeric
 spectral_radius(MatrixDn& m)
 {
-  auto n = m.size() / 2;
-  numeric radius(m.trace().value);
+  auto n = m.rows();
+  auto radius(m.trace().value);
   auto m_i = m;
   for (long i = 2; i <= n; ++i) {
     m_i *= m;
@@ -25,21 +25,37 @@ spectral_radius(MatrixDn& m)
     radius = std::max(radius, tr);
   }
 
+  std::cout << "radius " << radius << std::endl;
   return radius;
 }
 
 MatrixDn
 cleany(MatrixDn& m)
 {
-  auto n = m.size() / 2;
+  auto n = m.rows();
   auto lambda = ex_to<numeric>(spectral_radius(m).eval());
-  // ex lambda = sin(1);
-  auto inv_lambda = 1 / lambda;
+  MaxAlgebra inv_lambda(ex_to<numeric>(1 / lambda));
 
-  auto A_lambda = inv_lambda * m;
-  auto A_lambda_2 = A_lambda * A_lambda;
-  auto A_lambda_3 = A_lambda * A_lambda * A_lambda;
-  return Matrix44::Identity() + A_lambda + A_lambda_2 + A_lambda_3;
+  MatrixDn result(n, n);
+  for (long i = 0; i < n; ++i) {
+    for (long j = 0; j < n; ++j) {
+      result(i, j) = MaxAlgebra(0);
+    }
+  }
+
+  for (long i = 0; i < n; ++i) {
+    result(i, i) = MaxAlgebra(1);
+  }
+
+  MatrixDn A_lambda = inv_lambda * m;
+  auto A_i(A_lambda);
+
+  for (long i = 1; i < n; ++i) {
+    result += A_i;
+    A_i *= A_lambda;
+  }
+
+  return result;
 }
 
 int

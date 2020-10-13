@@ -18,15 +18,10 @@ public:
     : value(num, den){};
 
   friend std::ostream& operator<<(std::ostream& out, const MaxAlgebra& val);
-  MaxAlgebra& operator+=(MaxAlgebra rhs);
-  MaxAlgebra& operator=(MaxAlgebra rhs);
-  MaxAlgebra& operator=(const MaxAlgebra* rhs)
-  {
-    this->value = rhs->value;
-    return *this;
-  }
-  MaxAlgebra& operator*=(MaxAlgebra rhs);
-  MaxAlgebra& operator/=(MaxAlgebra rhs);
+  MaxAlgebra& operator+=(const MaxAlgebra& rhs);
+  MaxAlgebra operator=(const MaxAlgebra& rhs);
+  MaxAlgebra operator*=(const MaxAlgebra& rhs);
+  MaxAlgebra operator/=(const MaxAlgebra& rhs);
 
   explicit operator numeric() { return value; }
 };
@@ -42,12 +37,14 @@ isfinite(const MaxAlgebra&);
 namespace Eigen {
 template<>
 struct NumTraits<MaxAlgebra>
-  : NumTraits<double> // permits to get the epsilon, dummy_precision, lowest,
-                      // highest functions
+  : GenericNumTraits<MaxAlgebra> // permits to get the epsilon, dummy_precision,
+                                 // lowest, highest functions
 {
   typedef MaxAlgebra Real;
   typedef MaxAlgebra NonInteger;
   typedef MaxAlgebra Nested;
+  static inline int digits10() { return 0; }
+
   enum
   {
     IsComplex = 0,
