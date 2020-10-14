@@ -19,8 +19,7 @@ spectral_radius(MatrixDn& m)
 
   for (long i = 2; i <= n; ++i) {
     m_i *= m;
-    auto mitr = m_i.trace();
-    radius += pow(mitr.value, numeric(1) / i);
+    radius += pow(m_i.trace().value, inverse(i));
   }
 
   return radius;
@@ -59,8 +58,10 @@ main(int argc, char* argv[])
     numeric(1) / 2, 3, numeric(1) / 4, 1;              //
 
   std::cout << A << std::endl;
+  MatrixDn cleany_A = cleany(A);
+  std::cout << cleany_A << std::endl;
 
-  std::cout << cleany(A) << std::endl;
+  std::cout << cleany_A.householderQr().matrixQR() << std::endl;
 
   return 0;
 }

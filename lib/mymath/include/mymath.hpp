@@ -72,6 +72,17 @@ struct NumTraits<MaxAlgebra>
 };
 
 template<typename BinaryOp>
+struct ScalarBinaryOpTraits<MaxAlgebra, ex, BinaryOp>
+{
+  typedef MaxAlgebra ReturnType;
+};
+
+template<typename BinaryOp>
+struct ScalarBinaryOpTraits<ex, MaxAlgebra, BinaryOp>
+{
+  typedef MaxAlgebra ReturnType;
+};
+template<typename BinaryOp>
 struct ScalarBinaryOpTraits<MaxAlgebra, numeric, BinaryOp>
 {
   typedef MaxAlgebra ReturnType;
