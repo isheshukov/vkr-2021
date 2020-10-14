@@ -8,24 +8,21 @@
 using namespace Eigen;
 using namespace GiNaC;
 
-using Matrix44 = Matrix<MaxAlgebra, 4, 4>;
 using MatrixDn = Matrix<MaxAlgebra, Dynamic, Dynamic>;
-using M = MaxAlgebra;
 
-numeric
+MaxAlgebra
 spectral_radius(MatrixDn& m)
 {
-  auto n = m.rows();
-  auto radius(m.trace().value);
-  auto m_i = m;
+  auto n(m.rows());
+  MaxAlgebra radius(m.trace());
+  auto m_i(m);
+
   for (long i = 2; i <= n; ++i) {
     m_i *= m;
-    auto mitr = m_i.trace().value;
-    auto tr = ex_to<numeric>(pow(mitr, numeric(1, i)).eval());
-    radius = std::max(radius, tr);
+    auto mitr = m_i.trace();
+    radius += pow(mitr.value, numeric(1) / i);
   }
 
-  std::cout << "radius " << radius << std::endl;
   return radius;
 }
 
@@ -33,19 +30,10 @@ MatrixDn
 cleany(MatrixDn& m)
 {
   auto n = m.rows();
-  auto lambda = ex_to<numeric>(spectral_radius(m).eval());
-  MaxAlgebra inv_lambda(ex_to<numeric>(1 / lambda));
+  auto lambda = spectral_radius(m);
+  auto inv_lambda = MaxAlgebra(1) / lambda;
 
-  MatrixDn result(n, n);
-  for (long i = 0; i < n; ++i) {
-    for (long j = 0; j < n; ++j) {
-      result(i, j) = MaxAlgebra(0);
-    }
-  }
-
-  for (long i = 0; i < n; ++i) {
-    result(i, i) = MaxAlgebra(1);
-  }
+  MatrixDn result = MatrixDn::Identity(n, n);
 
   MatrixDn A_lambda = inv_lambda * m;
   auto A_i(A_lambda);
@@ -65,8 +53,12 @@ main(int argc, char* argv[])
   // Пример решений (стр. 54)
 
   MatrixDn A(4, 4);
-  A << M(1), M(3), M(4), M(2), M(1, 3), M(1), M(1, 2), M(1, 3), M(1, 4), M(2),
-    M(1), M(4), M(1, 2), M(3), M(1, 4), M(1);
+  A << 1, 3, 4, 2,                                     //
+    numeric(1) / 3, 1, numeric(1) / 2, numeric(1) / 3, //
+    numeric(1) / 4, 2, 1, 4,                           //
+    numeric(1) / 2, 3, numeric(1) / 4, 1;              //
+
+  std::cout << A << std::endl;
 
   std::cout << cleany(A) << std::endl;
 

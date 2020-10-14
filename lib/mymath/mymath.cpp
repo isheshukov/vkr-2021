@@ -6,32 +6,22 @@
 #include <random>
 #include <vector>
 
-#define OVERLOAD_OPERATOR(op, ret)                                             \
+#define OVERLOAD_OPERATOR_DEF(op, ret)                                         \
   ret operator op(const MaxAlgebra& lhs, const MaxAlgebra& rhs)                \
-  {                                                                            \
-    return MaxAlgebra(lhs.value op rhs.value);                                 \
-  }
-
-#define OVERLOAD_OPERATOR_BOOL(op)                                             \
-  bool operator op(const MaxAlgebra& lhs, const MaxAlgebra& rhs)               \
   {                                                                            \
     return lhs.value op rhs.value;                                             \
   }
 
-OVERLOAD_OPERATOR(*, MaxAlgebra)
-OVERLOAD_OPERATOR(/, MaxAlgebra)
-
-OVERLOAD_OPERATOR_BOOL(>)
-OVERLOAD_OPERATOR_BOOL(<)
-OVERLOAD_OPERATOR_BOOL(>=)
-OVERLOAD_OPERATOR_BOOL(<=)
-OVERLOAD_OPERATOR_BOOL(==)
-OVERLOAD_OPERATOR_BOOL(!=)
+OVERLOAD_OPERATOR_DEF(/, MaxAlgebra);
+OVERLOAD_OPERATOR_DEF(*, MaxAlgebra);
 
 MaxAlgebra
 operator+(const MaxAlgebra& lhs, const MaxAlgebra& rhs)
 {
-  return std::max(lhs.value, rhs.value);
+  if (lhs.value.evalf() < rhs.value.evalf())
+    return rhs;
+
+  return lhs;
 }
 
 std::ostream&
@@ -42,7 +32,7 @@ operator<<(std::ostream& out, const MaxAlgebra& val)
   return out;
 }
 
-MaxAlgebra
+MaxAlgebra&
 MaxAlgebra::operator=(const MaxAlgebra& rhs)
 {
   this->value = rhs.value;
@@ -52,18 +42,20 @@ MaxAlgebra::operator=(const MaxAlgebra& rhs)
 MaxAlgebra&
 MaxAlgebra::operator+=(const MaxAlgebra& rhs)
 {
-  this->value = std::max(this->value, rhs.value);
+  if (this->value.evalf() < rhs.value.evalf())
+    this->value = rhs.value;
+
   return *this;
 }
 
-MaxAlgebra
+MaxAlgebra&
 MaxAlgebra::operator*=(const MaxAlgebra& rhs)
 {
   this->value *= rhs.value;
   return *this;
 }
 
-MaxAlgebra
+MaxAlgebra&
 MaxAlgebra::operator/=(const MaxAlgebra& rhs)
 {
   this->value /= rhs.value;

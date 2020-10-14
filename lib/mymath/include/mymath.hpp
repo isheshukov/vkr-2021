@@ -9,27 +9,41 @@ using namespace GiNaC;
 class MaxAlgebra
 {
 public:
-  numeric value;
+  ex value;
   MaxAlgebra()
     : value(){};
   MaxAlgebra(numeric val)
     : value(val){};
+  MaxAlgebra(int val)
+    : value(val){};
+  MaxAlgebra(ex val)
+    : value(val){};
   MaxAlgebra(int num, int den)
-    : value(num, den){};
+    : value(numeric(num, den)){};
 
   friend std::ostream& operator<<(std::ostream& out, const MaxAlgebra& val);
   MaxAlgebra& operator+=(const MaxAlgebra& rhs);
-  MaxAlgebra operator=(const MaxAlgebra& rhs);
-  MaxAlgebra operator*=(const MaxAlgebra& rhs);
-  MaxAlgebra operator/=(const MaxAlgebra& rhs);
+  MaxAlgebra& operator=(const MaxAlgebra& rhs);
+  MaxAlgebra& operator*=(const MaxAlgebra& rhs);
+  MaxAlgebra& operator/=(const MaxAlgebra& rhs);
 
-  explicit operator numeric() { return value; }
+  explicit operator ex() { return value; }
 };
+
+#define OVERLOAD_OPERATOR_DECL(op, ret)                                        \
+  ret operator op(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
+
+#define OVERLOAD_OPERATOR_BOOL(op)                                             \
+  bool operator op(const MaxAlgebra& lhs, const MaxAlgebra& rhs)               \
+  {                                                                            \
+    return lhs.value op rhs.value;                                             \
+  }
+
+OVERLOAD_OPERATOR_DECL(/, MaxAlgebra);
+OVERLOAD_OPERATOR_DECL(*, MaxAlgebra);
 
 MaxAlgebra
 operator+(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
-MaxAlgebra
-operator*(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
 
 bool
 isfinite(const MaxAlgebra&);
@@ -69,3 +83,14 @@ struct ScalarBinaryOpTraits<numeric, MaxAlgebra, BinaryOp>
   typedef MaxAlgebra ReturnType;
 };
 }
+
+/*
+namespace GiNaC {
+template<>
+MaxAlgebra
+pow<MaxAlgebra, MaxAlgebra>(const MaxAlgebra& a, const MaxAlgebra& b)
+{}
+
+}
+
+*/
