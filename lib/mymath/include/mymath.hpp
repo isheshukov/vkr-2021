@@ -1,25 +1,17 @@
 #pragma once
 
-#include <Eigen/Core>
 #include <ginac/ginac.h>
+#include <Eigen/Core>
 #include <ostream>
 
-using namespace GiNaC;
-
-class MaxAlgebra
-{
-public:
-  ex value;
-  MaxAlgebra()
-    : value(){};
-  MaxAlgebra(numeric val)
-    : value(val){};
-  MaxAlgebra(int val)
-    : value(val){};
-  MaxAlgebra(ex val)
-    : value(val){};
-  MaxAlgebra(int num, int den)
-    : value(numeric(num, den)){};
+class MaxAlgebra {
+ public:
+  GiNaC::ex value;
+  MaxAlgebra() : value(){};
+  MaxAlgebra(GiNaC::numeric val) : value(val){};
+  MaxAlgebra(int val) : value(val){};
+  MaxAlgebra(GiNaC::ex val) : value(val){};
+  MaxAlgebra(int num, int den) : value(GiNaC::numeric(num, den)){};
 
   friend std::ostream& operator<<(std::ostream& out, const MaxAlgebra& val);
   MaxAlgebra& operator+=(const MaxAlgebra& rhs);
@@ -27,40 +19,37 @@ public:
   MaxAlgebra& operator*=(const MaxAlgebra& rhs);
   MaxAlgebra& operator/=(const MaxAlgebra& rhs);
 
-  explicit operator ex() { return value; }
+  explicit operator GiNaC::ex() { return value; }
 };
 
-#define OVERLOAD_OPERATOR_DECL(op, ret)                                        \
+#define OVERLOAD_OPERATOR_DECL(op, ret) \
   ret operator op(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
 
-#define OVERLOAD_OPERATOR_BOOL(op)                                             \
-  bool operator op(const MaxAlgebra& lhs, const MaxAlgebra& rhs)               \
-  {                                                                            \
-    return lhs.value op rhs.value;                                             \
+#define OVERLOAD_OPERATOR_BOOL(op)                                 \
+  bool operator op(const MaxAlgebra& lhs, const MaxAlgebra& rhs) { \
+    return lhs.value op rhs.value;                                 \
   }
 
 OVERLOAD_OPERATOR_DECL(/, MaxAlgebra);
 OVERLOAD_OPERATOR_DECL(*, MaxAlgebra);
 
-MaxAlgebra
-operator+(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
+MaxAlgebra operator+(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
 
-bool
-isfinite(const MaxAlgebra&);
+bool isfinite(const MaxAlgebra&);
 
 namespace Eigen {
-template<>
+template <>
 struct NumTraits<MaxAlgebra>
-  : GenericNumTraits<MaxAlgebra> // permits to get the epsilon, dummy_precision,
-                                 // lowest, highest functions
+    : GenericNumTraits<MaxAlgebra>  // permits to get the epsilon,
+                                    // dummy_precision, lowest, highest
+                                    // functions
 {
   typedef MaxAlgebra Real;
   typedef MaxAlgebra NonInteger;
   typedef MaxAlgebra Nested;
   static inline int digits10() { return 0; }
 
-  enum
-  {
+  enum {
     IsComplex = 0,
     IsInteger = 0,
     IsSigned = 1,
@@ -71,29 +60,25 @@ struct NumTraits<MaxAlgebra>
   };
 };
 
-template<typename BinaryOp>
-struct ScalarBinaryOpTraits<MaxAlgebra, ex, BinaryOp>
-{
+template <typename BinaryOp>
+struct ScalarBinaryOpTraits<MaxAlgebra, GiNaC::ex, BinaryOp> {
   typedef MaxAlgebra ReturnType;
 };
 
-template<typename BinaryOp>
-struct ScalarBinaryOpTraits<ex, MaxAlgebra, BinaryOp>
-{
+template <typename BinaryOp>
+struct ScalarBinaryOpTraits<GiNaC::ex, MaxAlgebra, BinaryOp> {
   typedef MaxAlgebra ReturnType;
 };
-template<typename BinaryOp>
-struct ScalarBinaryOpTraits<MaxAlgebra, numeric, BinaryOp>
-{
+template <typename BinaryOp>
+struct ScalarBinaryOpTraits<MaxAlgebra, GiNaC::numeric, BinaryOp> {
   typedef MaxAlgebra ReturnType;
 };
 
-template<typename BinaryOp>
-struct ScalarBinaryOpTraits<numeric, MaxAlgebra, BinaryOp>
-{
+template <typename BinaryOp>
+struct ScalarBinaryOpTraits<GiNaC::numeric, MaxAlgebra, BinaryOp> {
   typedef MaxAlgebra ReturnType;
 };
-}
+}  // namespace Eigen
 
 /*
 namespace GiNaC {
