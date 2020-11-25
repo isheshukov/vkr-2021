@@ -6,6 +6,16 @@
 
 using MatrixDn = Eigen::Matrix<MaxAlgebra, Eigen::Dynamic, Eigen::Dynamic>;
 
+static Eigen::IOFormat StdoutFmt(4, 0, ", ", "\n", "\t", "", "\n", "");
+static Eigen::IOFormat LaTeXFmt(Eigen::FullPrecision,
+                                Eigen::DontAlignCols,
+                                "& ",
+                                "\\\\",
+                                "",
+                                "",
+                                "\\begin{pmatrix}",
+                                "\\end{pmatrix}");
+
 MaxAlgebra spectral_radius(MatrixDn& m) {
   auto n(m.rows());
   MaxAlgebra radius(m.trace());
@@ -26,23 +36,27 @@ MaxAlgebra spectral_radius(MatrixDn& m) {
 }
 
 MatrixDn cleany(MatrixDn& m) {
-  // std::cout << "\nCLEANY MATRIX";
-  // std::cout << "\n---------------";
+  std::cout << "\n\tCLEANY MATRIX";
+  std::cout << "\n\t---------------";
 
   auto n = m.rows();
   auto lambda = spectral_radius(m);
-  auto inv_lambda = MaxAlgebra(1) / lambda;
+  std::cout << "\n\tlambda = " << lambda << "\n";
 
   MatrixDn result = MatrixDn::Identity(n, n);
-  // std::cout << "\nm^" << 0 << "=\n" << result << "\n";
+  std::cout << "\n\tI=\n" << result.format(StdoutFmt) << "\n";
+  std::cout << "\n\tI= " << result.format(LaTeXFmt) << "\n";
 
-  MatrixDn A_lambda = inv_lambda * m;
+  MatrixDn A_lambda = m / lambda;
   auto A_i(A_lambda);
 
   for (long i = 1; i < n; ++i) {
     result += A_i;
+    std::cout << "\n\tlambda^-" << i << "m^" << i << "=\n"
+              << A_i.format(StdoutFmt) << "\n";
+    std::cout << "\n\tlambda^-" << i << "m^" << i << "= "
+              << A_i.format(LaTeXFmt) << "\n";
     A_i *= A_lambda;
-    // std::cout << "\nm^" << i << "=\n" << result << "\n";
   }
 
   return result;
@@ -50,11 +64,6 @@ MatrixDn cleany(MatrixDn& m) {
 
 int main(int argc, char* argv[]) {
   // Пример решений (стр. 54)
-  Eigen::IOFormat StdoutFmt(4, 0, ", ", "\n", "\t", "", "\n", "");
-  Eigen::IOFormat LaTeXFmt(Eigen::FullPrecision, Eigen::DontAlignCols, "& ",
-                           "\\\\", "", "", "\\begin{pmatrix}",
-                           "\\end{pmatrix}");
-
   MatrixDn C(2, 2);
   MatrixDn A1(3, 3);
   MatrixDn A2(3, 3);
@@ -71,7 +80,7 @@ int main(int argc, char* argv[]) {
   auto mu = spectral_radius(B);
   std::cout << "Spectral radius of B (mu) = " << mu << std::endl;
 
-  auto delta = GiNaC::ex(7) / GiNaC::sqrt(GiNaC::ex(5));
+  auto delta = MaxAlgebra(7) / GiNaC::sqrt(GiNaC::ex(5));
 
   auto D = MatrixDn::Ones(3, 3) / GiNaC::ex(delta);
   auto BB = (1 / mu * B).eval();
