@@ -15,3 +15,8 @@ add_executable(tropical
   main.cpp
 )
 target_link_libraries(tropical PUBLIC structopt mymath)
+
+add_custom_command(TARGET tropical POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${PROJECT_SOURCE_DIR}/dlls"
+        $<TARGET_FILE_DIR:tropical>)
