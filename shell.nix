@@ -10,6 +10,7 @@ pkgs.clangStdenv.mkDerivation {
       clang-analyzer
       clang-tools
       valgrind
+      zip
     ];
 
     buildInputs = with pkgs; [
