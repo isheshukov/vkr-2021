@@ -1,4 +1,8 @@
 .envrc
 .direnv
 release.sh
+release.win.sh
+CMakeLists.txt.user
 build/
+dist/
+windata/
