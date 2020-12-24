@@ -1,0 +1,139 @@
+\documentclass[specialist,
+  substylefile = spbu.rtx,
+  href,
+  colorlinks=true,
+  12pt]{disser}
+
+\input{preamble.tex}
+
+\begin{document}
+
+\maketitle
+\addcontentsline{toc}{chapter}{\nameref{sec:intro}}
+\tableofcontents
+
+\chapter*{Введение}
+\label{sec:intro}
+Задача принятия решения на основе парных сравнений состоит в том, чтобы по результатам попарных сравнений $n$ альтернатив определить абсолютный приоритет каждой альтернативы.
+
+\begin{definition}{Матрица парных сравнений}
+  есть матрица $A = (a_{ij})$, элемент $a_{ij}$ которой показывает, во сколько раз альтернатива $i$ превосходит альтернативу $j$ и для которой верны условия
+  \[
+    a_{ij} = \nicefrac{1}{a_{ij}}, \quad a_{ij} > 0.
+  \]
+\end{definition}
+\begin{definition}{Согласованная матрица}
+  есть матрица $A = (a_{ij})$ такая, что выполняется свойство транзитивности. Т.е.
+  \[
+    a_{ij} = a_{ik}a_{kj}, \quad i,j,k = 1,\dots,n.
+  \]
+\end{definition}
+\begin{definition}
+  В том случае, если $A$ согласованна, то существует вектор $x$, называемый \textit{вектором абсолютных приоритетов}, такой, что
+  \[
+    a_{ij} = x_{i}/x_{j}.
+  \]
+\end{definition}
+   На практике, матрицы парных сравнений обычно несогласованны, и поэтому возникает задача приближения матрицы парных сравнений согласованной матрицей.
+  Одним из способов решения (т.н. $\log$-чебышёвская аппроксимация) этой задачи является нахождение вектора $x$, который бы минимизировал следующее выражение
+  \[
+  l_{\infty}\left(A, x x^{-}\right)=\max _{1 \leq i, j \leq n}\left|\log a_{i j}-\log \frac{x_{i}}{x_{j}}\right|, \quad x^{-} = (x^{T})^{-1},
+  \]
+  что сводится к нахождению $x$ такого, что
+  \[
+    \min _{x>0} \max _{1 \leq i, j \leq n} \frac{a_{i j} x_{j}}{x_{i}}.
+  \]
+  Данная задача может быть решена с использованием идемпотентной алгебры и max-алгебры в частности.
+\begin{definition}{Max-алгебра}
+  есть алгебра над множеством $\mathbb{R}_{+}=\{x \in \mathbb{R} \mid x \geq 0\}$ с операциями ${(\oplus, \times)}$, где $\oplus$ --- это максимум, а $\times$ --- стандартное умножение.
+\end{definition}
+Соответственно, на языке max-алгебры решение задачи будет выглядеть следующим образом
+\[
+  \min _{x>0} \bigoplus_{1 \leq i, j \leq n} x_{i}^{-1} a_{i j} x_{j},
+\]
+что можно дополнительно переписать как
+\[
+  \min _{x>0} x^{-} A x.
+\]
+
+\section{Задача}
+  Требуется написать программу, символьно решающую задачу принятия решений методом log-чебышёвской аппроксимации в max-алгебре.
+
+\chapter{Ход работы}
+\section{Выполнено}
+  \begin{enumerate}
+    \item Было написано расширение для библиотеки линейной алгебры Eigen, позволяющее работать с символьными вычислениями в max-алгебре.
+    \item Были реализованы некоторые функции, используемые в алгоритме решения задачи: функция вычисления спектрального радиуса и оператор Клини.
+  \end{enumerate}
+
+\chapter{Заключение}
+\section{Планируется сделать}
+  \begin{enumerate}
+    \item Добавить больше функций
+    \item Добавить в программу возможность решения многокритериальных задач
+    \item Сравнить скорость и результаты работы программы с существующими решениями
+  \end{enumerate}
+
+\appendix
+\cleardoublepage\makeatletter\@openrightfalse\makeatother
+\chapter{Примеры работы программы}
+\section{Пример 1}
+Объявление двух матриц $A_{1}$ и $A_{2}$ размера $3\times 3$:
+  \begin{lstlisting}[language=C++,basicstyle=\ttfamily,keywordstyle=\color{red}]
+ MatrixDn A1(3, 3);
+ MatrixDn A2(3, 3);
+
+ A1 << ex(sin(1)), 3, ex(1) / 3,
+        ex(1) / 3, 1, 1,
+                3, 1, 1;
+ A2 <<   0, ex(1) / 3, 5,
+         3,         1, 7,
+ ex(1) / 5, ex(1) / 7, 1;
+  \end{lstlisting}
+  Сумма и произведение этих матриц:
+  \begin{lstlisting}[language=C++,basicstyle=\ttfamily,keywordstyle=\color{red}]
+ std::cout << "A1+A2=\n" << A1+A2 << std::endl;
+ std::cout << "A1*A2=\n" << A1*A2 << std::endl;
+  \end{lstlisting}
+  Вывод:
+  \begin{lstlisting}[language=bash,basicstyle=\ttfamily,keywordstyle=\color{red}]
+ A1 + A2 =               A1 * A2 =
+   \sin(1) 3 5             9  3 21
+   3       1 7             3  1  7
+   3       1 1             3  1 15
+  \end{lstlisting}
+\section{Пример 2}
+Объявление матрицы $C$ размера $4\times 4$:
+  \begin{lstlisting}[language=bash,basicstyle=\ttfamily,keywordstyle=\color{red}]
+   MatrixDn C(4, 4);
+   C <<  8, 3, 10, 6,
+         7, 2,  1, 4,
+        10, 8,  2, 2,
+         4, 7,  6, 1;
+  \end{lstlisting}
+  Вычисление спектрального радиуса:
+  \begin{lstlisting}[language=bash,basicstyle=\ttfamily,keywordstyle=\color{red}]
+   std::cout
+         << "Spectral radius of C = "
+         << spectral_radius(C)
+         << std::endl;
+   \end{lstlisting}
+Вывод:
+  \begin{lstlisting}[language=bash,basicstyle=\ttfamily,keywordstyle=\color{red}]
+m^1=                      m^2=
+ 8  3 10  6               100  80  80  48
+ 7  2  1  4                56  28  70  42
+10  8  2  2                80  30 100  60
+ 4  7  6  1                60  48  40  28
+                          tr(m^2)^(1/2) = 10
+
+m^3=                      m^4=
+ 800  640 1000  600       10000  8000  8000  4800
+ 700  560  560  336        5600  4480  7000  4200
+1000  800  800  480        8000  6400 10000  6000
+ 480  320  600  360        6000  4800  4800  2880
+tr(m^3)^(1/3) = 800^(1/3)   tr(m^4)^(1/4) = 10
+
+Spectral radius of C = 10
+\end{lstlisting}
+\end{document}

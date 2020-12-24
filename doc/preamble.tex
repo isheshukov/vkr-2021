@@ -1,0 +1,99 @@
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[english, russian]{babel}
+\usepackage[a4paper,
+  mag=1000,
+  includefoot,
+  left=3cm,
+  right=1.5cm,
+  top=2cm,
+  bottom=2cm,
+  headsep=1cm,
+  footskip=1cm]{geometry}
+\usepackage{longtable}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{amsmath, amsfonts, amsthm}
+\usepackage{graphics}
+\usepackage{csquotes}
+\usepackage{nicefrac}
+\usepackage{minted}
+\usepackage[
+  backend=biber,
+  bibstyle=gost-numeric,
+  citestyle=gost-numeric,
+  hyperref=true,
+  natbib=true,
+  url=true,
+]{biblatex}
+\hypersetup{unicode=true}
+\addbibresource{./references.bib}
+\let\vec=\mathbf
+\setcounter{tocdepth}{2}
+\author{Илья Шешуков}
+\date{\number\year}
+\title{Отчёт по научно-исследовательской работе}
+\hypersetup{
+ pdfauthor={Илья Шешуков},
+ pdftitle={Курсовая работа},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 26.3},
+ pdflang={Russian}}
+
+
+% Имена без курсива
+\renewcommand*{\mkgostheading}[1]{#1}
+% Правка записей типа thesis, чтобы дважды не писался автор
+\DeclareBibliographyDriver{thesis}{
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \usebibmacro{heading}%
+  \newunit
+  \usebibmacro{author}%
+  \setunit*{\labelnamepunct}%
+  \usebibmacro{thesistitle}%
+  \setunit{\respdelim}%
+  %\printnames[last-first:full]{author}%Вот эту строчку нужно убрать, чтобы автор диссертации не дублировался
+  \newunit\newblock
+  \printlist[semicolondelim]{specdata}%
+  \newunit
+  \usebibmacro{institution+location+date}%
+  \newunit\newblock
+  \usebibmacro{chapter+pages}%
+  \newunit
+  \printfield{pagetotal}%
+  \newunit\newblock
+  \usebibmacro{doi+eprint+url+note}%
+  \newunit\newblock
+  \usebibmacro{addendum+pubstate}%
+  \setunit{\bibpagerefpunct}\newblock
+  \usebibmacro{pageref}%
+  \newunit\newblock
+  \usebibmacro{related:init}%
+  \usebibmacro{related}%
+  \usebibmacro{finentry}
+}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Определение}[section]
+
+
+\institution{
+    Санкт-Петербургский государственный университет \\
+    Прикладная математика и информатика \\
+    Вычислительная стохастика и статистические модели
+}
+
+\topic{\normalfont\scshape%
+Разработка вычислительных алгоритмов и программных средств поддержки принятия решений
+}
+
+% Научный руководитель
+\sa       {Н.\,К.~Кривулин}
+\sastatus {доктор физ.-мат. наук, профессор}
+
+% Город и год
+\city{Санкт-Петербург}
