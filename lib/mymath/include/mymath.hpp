@@ -18,6 +18,7 @@ class MaxAlgebra {
   MaxAlgebra& operator=(const MaxAlgebra& rhs);
   MaxAlgebra& operator*=(const MaxAlgebra& rhs);
   MaxAlgebra& operator/=(const MaxAlgebra& rhs);
+  MaxAlgebra& abs(const MaxAlgebra& rhs);
 
   explicit operator GiNaC::ex() { return value; }
 };
@@ -34,6 +35,8 @@ OVERLOAD_OPERATOR_DECL(/, MaxAlgebra);
 OVERLOAD_OPERATOR_DECL(*, MaxAlgebra);
 
 MaxAlgebra operator+(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
+bool operator<(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
+bool operator>(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
 
 bool isfinite(const MaxAlgebra&);
 

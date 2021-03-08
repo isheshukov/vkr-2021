@@ -5,16 +5,17 @@
 #include "mymath.hpp"
 
 using MatrixDn = Eigen::Matrix<MaxAlgebra, Eigen::Dynamic, Eigen::Dynamic>;
+using ma = MaxAlgebra;
 
 static Eigen::IOFormat StdoutFmt(4, 0, ", ", "\n", "\t", "", "\n", "");
-static Eigen::IOFormat LaTeXFmt(Eigen::FullPrecision,
-                                Eigen::DontAlignCols,
-                                "& ",
-                                "\\\\",
-                                "",
-                                "",
-                                "\\begin{pmatrix}",
+static Eigen::IOFormat LaTeXFmt(Eigen::FullPrecision, Eigen::DontAlignCols,
+                                "& ", "\\\\", "", "", "\\begin{pmatrix}",
                                 "\\end{pmatrix}");
+static Eigen::IOFormat MatlabFmt(Eigen::FullPrecision, Eigen::DontAlignCols,
+                                 ", ", "\n ", "[", "]", "", "");
+static Eigen::IOFormat MathematicaFmt(Eigen::FullPrecision,
+                                      Eigen::DontAlignCols, ", ", ",\n ", "{",
+                                      "}", "{", "}");
 
 MaxAlgebra spectral_radius(MatrixDn& m) {
   auto n(m.rows());
@@ -29,69 +30,98 @@ MaxAlgebra spectral_radius(MatrixDn& m) {
   for (long i = 2; i <= n; ++i) {
     m_i *= m;
     radius += pow(m_i.trace().value, GiNaC::inverse(i));
-    //    std::cout << "\nm^" << i << "= " << m_i << "\n";
+    // std::cout << "\nm^" << i << "= " << m_i.format(LaTeXFmt) << "\n";
   }
 
   return radius;
 }
-
 MatrixDn cleany(MatrixDn& m) {
-  std::cout << "\n\tCLEANY MATRIX";
-  std::cout << "\n\t---------------";
+  // std::cout << "\n\tCLEANY MATRIX";
+  // std::cout << "\n\t---------------";
 
   auto n = m.rows();
-  auto lambda = spectral_radius(m);
-  std::cout << "\n\tlambda = " << lambda << "\n";
 
   MatrixDn result = MatrixDn::Identity(n, n);
-  std::cout << "\n\tI=\n" << result.format(StdoutFmt) << "\n";
-  std::cout << "\n\tI= " << result.format(LaTeXFmt) << "\n";
+  // std::cout << "\n\tI=\n" << result.format(MathematicaFmt) << "\n";
+  // std::cout << "\n\tI= " << result.format(LaTeXFmt) << "\n";
 
-  MatrixDn A_lambda = m / lambda;
-  auto A_i(A_lambda);
+  auto A_i(m);
 
   for (long i = 1; i < n; ++i) {
     result += A_i;
-    std::cout << "\n\tlambda^-" << i << "m^" << i << "=\n"
-              << A_i.format(StdoutFmt) << "\n";
-    std::cout << "\n\tlambda^-" << i << "m^" << i << "= "
-              << A_i.format(LaTeXFmt) << "\n";
-    A_i *= A_lambda;
+    // std::cout << "\n\tm^" << i << "=\n" << A_i.format(LaTeXFmt) << "\n";
+    A_i *= m;
   }
 
   return result;
 }
+std::pair<MatrixDn::Index, MatrixDn::Index> best_diff_vector_coefficients(
+    MatrixDn& P) {
+  std::vector<MaxAlgebra> k_candidates;
+  auto rows = P.rows();
+  auto cols = P.cols();
+  auto ones_vec = MatrixDn::Ones(rows, 1);
+
+  for (size_t i = 0; i < cols; ++i) {
+    auto p = P.col(i);
+    auto pminus = p.transpose().cwiseInverse();
+    auto pre_result = ones_vec.transpose() * p * pminus * ones_vec;
+    std::cout << pre_result << std::endl;
+    k_candidates.push_back(pre_result.eval()(0, 0));
+  }
+
+  auto k =
+      std::distance(k_candidates.begin(),
+                    std::max_element(k_candidates.begin(), k_candidates.end()));
+
+  auto p_k_inv = P.col(k).cwiseInverse().eval();
+  MatrixDn::Index l_index;
+  p_k_inv.maxCoeff(&l_index);
+
+  return {k, l_index};
+}
 
 int main(int argc, char* argv[]) {
   // Пример решений (стр. 54)
-  MatrixDn C(2, 2);
+  MatrixDn C(6, 6);
+  C << 1, MaxAlgebra(1, 4), MaxAlgebra(1, 5), MaxAlgebra(1, 4), 6,
+      MaxAlgebra(1, 6), 4, 1, MaxAlgebra(1, 3), 3, 6, MaxAlgebra(1, 2), 5, 3, 1,
+      4, 7, 3, 4, MaxAlgebra(1, 3), MaxAlgebra(1, 4), 1, 5, MaxAlgebra(1, 5),
+      MaxAlgebra(1, 6), MaxAlgebra(1, 6), MaxAlgebra(1, 7), MaxAlgebra(1, 5), 1,
+      MaxAlgebra(1, 7), 6, 2, MaxAlgebra(1, 3), 5, 7, 1;
+
   MatrixDn A1(3, 3);
   MatrixDn A2(3, 3);
-  C << 1, MaxAlgebra(1, 3), 3, 1;
-  A1 << 1, 3, GiNaC::ex(1) / 3, GiNaC::ex(1) / 3, 1, 1, 3, 1, 1;
-  A2 << 1, GiNaC::ex(1) / 3, 5, 3, 1, 7, GiNaC::ex(1) / 5, GiNaC::ex(1) / 7, 1;
+  MatrixDn A3(3, 3);
+  MatrixDn A4(3, 3);
+  MatrixDn A5(3, 3);
+  MatrixDn A6(3, 3);
 
   auto lambda = spectral_radius(C);
-  std::cout << "Spectral radius of C (lambda) = " << lambda << std::endl;
 
-  auto B = (A1 + 3 * A2).eval();
-  std::cout << "Matrix B is " << B.format(StdoutFmt) << std::endl;
+  MatrixDn Calmoststar = GiNaC::ex(1) / GiNaC::ex(lambda) * C;
+  auto w = cleany(Calmoststar);
+  std::cout << "w = " << w.format(MathematicaFmt) << std::endl;
 
-  auto mu = spectral_radius(B);
-  std::cout << "Spectral radius of B (mu) = " << mu << std::endl;
+  auto delta = MatrixDn::Ones(1, 6) * w * MatrixDn::Ones(6, 1);
+  std::cout << "delta = " << delta << std::endl;
+  std::cout << "delta^-1 = " << 1 / delta.value() << std::endl;
 
-  auto delta = MaxAlgebra(7) / GiNaC::sqrt(GiNaC::ex(5));
+  MatrixDn W1m = (1 / delta.value() * MatrixDn::Ones(6, 6)) + Calmoststar;
+  auto w1 = cleany(W1m);
 
-  auto D = MatrixDn::Ones(3, 3) / GiNaC::ex(delta);
-  auto BB = (1 / mu * B).eval();
-  auto BBstar = cleany(BB);
-  std::cout << "Cleany matrix of 1 / mu * B\n"
-            << BBstar.format(StdoutFmt) << std::endl;
+  MatrixDn P(6, 2);
+  P << w.col(0), w.col(1);
+  std::cout << "P = " << P.format(MathematicaFmt) << std::endl;
 
-  auto M = (D + BB).eval();
-  std::cout << "Matrix (D + 1/mu * B) is " << M.format(StdoutFmt) << std::endl;
-  std::cout << "Cleany matrix of D + 1 / mu * B" << cleany(M).format(StdoutFmt)
-            << std::endl;
+  auto [k, l] = best_diff_vector_coefficients(P);
 
+  MatrixDn Plk_inverse = MatrixDn::Zero(P.rows(), P.cols());
+  Plk_inverse(l, k) = 1 / P(l, k);
+
+  auto w2 = P * (MatrixDn::Identity(P.cols(), P.cols()) +
+                 Plk_inverse.transpose() * P);
+
+  std::cout << "w2 = " << w2.format(MathematicaFmt) << std::endl;
   return 0;
 }
