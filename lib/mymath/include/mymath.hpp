@@ -21,6 +21,7 @@ class MaxAlgebra {
   MaxAlgebra& abs(const MaxAlgebra& rhs);
 
   explicit operator GiNaC::ex() { return value; }
+  friend MaxAlgebra pow(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
 };
 
 #define OVERLOAD_OPERATOR_DECL(op, ret) \

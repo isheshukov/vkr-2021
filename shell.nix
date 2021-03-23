@@ -15,10 +15,12 @@ pkgs.clangStdenv.mkDerivation {
 
     buildInputs = with pkgs; [
                     ginac
+		    cln
                     mesa
                     mesa_glu
                     qt514.full
                     qtcreator
+		    texstudio
 		    python3Packages.pygments
                     (texlive.combine { inherit (texlive) scheme-medium 
 		    disser 

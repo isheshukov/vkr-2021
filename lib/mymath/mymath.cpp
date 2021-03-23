@@ -27,6 +27,10 @@ bool operator>(const MaxAlgebra& lhs, const MaxAlgebra& rhs) {
   return !(lhs < rhs);
 }
 
+MaxAlgebra pow(const MaxAlgebra& lhs, const MaxAlgebra& rhs) {
+  return GiNaC::pow(lhs.value, rhs.value);
+}
+
 std::ostream& operator<<(std::ostream& out, const MaxAlgebra& val) {
   using std::operator<<;
   out << val.value;

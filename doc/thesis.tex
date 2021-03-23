@@ -6,7 +6,7 @@
 
 \input{preamble.tex}
 
-\begin{document}
+ \begin{document}
 
 \maketitle
 \addcontentsline{toc}{chapter}{\nameref{sec:intro}}
@@ -14,65 +14,337 @@
 
 \chapter*{Введение}
 \label{sec:intro}
-Задача принятия решения на основе парных сравнений состоит в том, чтобы по результатам попарных сравнений $n$ альтернатив определить абсолютный приоритет каждой альтернативы.
+Задача принятия решения на основе парных сравнений состоит в том, чтобы по результатам попарных сравнений $n$ альтернатив определить абсолютный приоритет каждой альтернативы. Подобные задачи возникают во множестве областей: социологии, маркетинге, менеджменте.
 
-\begin{definition}{Матрица парных сравнений}
-  есть матрица $A = (a_{ij})$, элемент $a_{ij}$ которой показывает, во сколько раз альтернатива $i$ превосходит альтернативу $j$ и для которой верны условия
+\begin{definition}{Матрицей парных сравнений}
+  называется матрица $\boldsymbol{A} = (a_{ij})$, элемент $a_{ij}$ которой показывает, во сколько раз альтернатива $i$ превосходит альтернативу $j$ и для которой верны условия
   \[
-    a_{ij} = \nicefrac{1}{a_{ij}}, \quad a_{ij} > 0.
+    a_{ij} = \nicefrac{1}{a_{ji}}, \quad a_{ij} > 0.
   \]
 \end{definition}
-\begin{definition}{Согласованная матрица}
-  есть матрица $A = (a_{ij})$ такая, что выполняется свойство транзитивности. Т.е.
+\begin{definition}{Согласованной матрицей}
+  называется матрица $\boldsymbol{A} = (a_{ij})$ такая, что выполняется свойство транзитивности. Т.е.
   \[
     a_{ij} = a_{ik}a_{kj}, \quad i,j,k = 1,\dots,n.
   \]
 \end{definition}
-\begin{definition}
-  В том случае, если $A$ согласованна, то существует вектор $x$, называемый \textit{вектором абсолютных приоритетов}, такой, что
+\begin{utv}
+	Необходимым и достаточным условием~\cite{saaty1984} того, что матрица $\boldsymbol{A}$
+	согласованна является существование вектора $\boldsymbol{x}$, называемого \textit{вектором абсолютных приоритетов}, такого, что
+  
   \[
-    a_{ij} = x_{i}/x_{j}.
+    a_{ij} = x_{i}/x_{j} \quad \forall i, j.
   \]
-\end{definition}
+\end{utv}
    На практике, матрицы парных сравнений обычно несогласованны, и поэтому возникает задача приближения матрицы парных сравнений согласованной матрицей.
-  Одним из способов решения (т.н. $\log$-чебышёвская аппроксимация) этой задачи является нахождение вектора $x$, который бы минимизировал следующее выражение
+  Одним из способов решения (т.н. $\log$-чебышёвская аппроксимация~\cite{krivulin2019}) этой задачи является нахождение вектора $\boldsymbol{x}$, который бы минимизировал следующее выражение
   \[
-  l_{\infty}\left(A, x x^{-}\right)=\max _{1 \leq i, j \leq n}\left|\log a_{i j}-\log \frac{x_{i}}{x_{j}}\right|, \quad x^{-} = (x^{T})^{-1},
+	  l_{\infty}\left(\boldsymbol{A}, \boldsymbol{x} \boldsymbol{x}^{-}\right)=\max _{1 \leq i, j \leq n}\left|\log a_{i j}-\log \frac{x_{i}}{x_{j}}\right|, \quad \boldsymbol{x}^{-} = \begin{pmatrix}x_1^{-1}&x_2^{-1} & \dots & x_n^{-1}\end{pmatrix},
   \]
-  что сводится к нахождению $x$ такого, что
+  что сводится к нахождению $\boldsymbol{x}$ такого, что
   \[
-    \min _{x>0} \max _{1 \leq i, j \leq n} \frac{a_{i j} x_{j}}{x_{i}}.
+      \min _{\boldsymbol{x}>0} \max _{1 \leq i, j \leq n} \frac{a_{i j} x_{j}}{x_{i}}.
   \]
-  Данная задача может быть решена с использованием идемпотентной алгебры и max-алгебры в частности.
-\begin{definition}{Max-алгебра}
-  есть алгебра над множеством $\mathbb{R}_{+}=\{x \in \mathbb{R} \mid x \geq 0\}$ с операциями ${(\oplus, \times)}$, где $\oplus$ --- это максимум, а $\times$ --- стандартное умножение.
+  Данная задача, называемая однокритериальной, может быть решена с использованием идемпотентной алгебры и max-алгебры в частности.
+  На языке max-алгебры решение задачи будет выглядеть следующим образом
+  \[
+  \min _{\boldsymbol{x}>0} \bigoplus_{1 \leq i, j \leq n} x_{i}^{-1} a_{i j} x_{j},
+  \]
+  что можно дополнительно переписать как
+  \[
+  \min _{\boldsymbol{x}>0} x^{-} A x.
+  \]
+  
+  \begin{definition}{Max-алгебра}
+  	есть алгебра над множеством $\mathbb{R}_{+}=\{x \in \mathbb{R} \mid x \geq 0\}$ с операциями ${(\oplus, \times)}$, где $\oplus$ --- это максимум, а $\times$ --- стандартное умножение.
+  \end{definition}
+  
+  \section{Некоторые свойства max-алгебры}
+  
+  \begin{enumerate}
+  	\item Сложение идемпотентно
+  	\[
+  	x \oplus x = x \quad \forall x \in \mathbb{R}_+
+  	\]
+  	\item Вычитание не определено
+  	\item Экстремальное свойство сложения
+  	\[
+  	x \leq x \oplus y,\quad y \leq x \oplus y \quad \forall x, y \in \mathbb{R}_+
+  	\]
+  	\item Изотонность сложения и умножения
+  	\[
+  	x \leq y \Rightarrow x \oplus z \leq y \oplus z,\quad xz \leq yz \quad \forall x,y,z \in \mathbb{R}_+
+  	\]
+  	\item Антитонность обращения
+  	\[
+  	x \leq y \Rightarrow x^{-1} \geq y^{-1} \quad\forall x,y \in \mathbb{R}_+ \setminus \{0\}
+  	\]
+  	\item Антитонность обращения
+  	\[
+  	x \oplus y \leq z \Leftrightarrow x \leq z,\quad y \leq z \quad \forall x,y,z \in \mathbb{R}_+
+  	\]
+  \end{enumerate}
+\section{Некоторые объекты, используемые в решении задачи}
+
+\begin{definition}{Тропический определитель матрицы}
+	\[
+	\mathrm{Tr} \boldsymbol{A} \coloneqq \mathrm{tr}\boldsymbol{A} \oplus \dots \oplus \mathrm{tr}\boldsymbol{A}^n
+	\]
 \end{definition}
-Соответственно, на языке max-алгебры решение задачи будет выглядеть следующим образом
+\begin{definition}{Спектральный радиус}
+	\[
+	\lambda \coloneqq \mathrm{tr}\boldsymbol{A} \oplus \dots \oplus \mathrm{tr}^{1/n}\boldsymbol{A}^n
+	\]
+\end{definition}
+\begin{definition}{Оператор Клини\\}
+	Если $\mathrm{Tr} \boldsymbol{A} \leq 1$, то оператор Клини определяется следующим образом
+	\[
+	\boldsymbol{A}^* \coloneqq \boldsymbol{I} \oplus \boldsymbol{A} \oplus \dots \oplus \boldsymbol{A}^{n-1}
+	\]
+\end{definition}
+
+\section{Многокритериальная задача парных сравнений}
+Программное средство, разрабатываемое в рамках этой работы, поддерживает и многокритериальные задачи.
+
+\subsection{Постановка многокритериальной задачи}
+
+Пусть $n$ альтернатив сраниваются по $m$ критериям.
+Матрица $\boldsymbol{A}_k$ --- матрица попарных сравнений по критерию с номером $k = 1, \dots, n$.
+Матрица $\boldsymbol{С} = (c_{ij})$ --- матрица, показывающая, во сколько раз критерий с номером $i$ важнее критерия с номером $j$. Необходимо построить вектор абсолютных альтернатив по матрицам $\boldsymbol{A}_k$ и $\boldsymbol{C}$.
+Определим функцию
+$$
+f_{k}(\boldsymbol{x})=d\left(\boldsymbol{A}_{k}, \boldsymbol{x} \boldsymbol{x}^{-}\right)	
+$$ и тогда задача сводится к нахождению
+$$
+\min _{\boldsymbol{x}>\mathbf{0}}\left(f_{1}(\boldsymbol{x}), \ldots, f_{m}(\boldsymbol{x})\right).
+$$
+
+В терминах тропической математики задача принимает вид
+$$
+\min _{\boldsymbol{x}>\mathbf{0}} \boldsymbol{x}^{-} \boldsymbol{A} \boldsymbol{x}, \quad \text { где } \quad \boldsymbol{A}=\bigoplus_{1 \leq k \leq m} w_{k} \boldsymbol{A}_{k},
+$$
+где вектор весов $\boldsymbol{w}=\left(w_{k}\right)$ находится как решение задачи
 \[
-  \min _{x>0} \bigoplus_{1 \leq i, j \leq n} x_{i}^{-1} a_{i j} x_{j},
-\]
-что можно дополнительно переписать как
-\[
-  \min _{x>0} x^{-} A x.
+\min _{\boldsymbol{w}>0} \boldsymbol{w}^{-} \boldsymbol{C} \boldsymbol{w}
 \]
 
-\section{Задача}
-  Требуется написать программу, символьно решающую задачу принятия решений методом log-чебышёвской аппроксимации в max-алгебре.
+Все решения задачи определения весов записываются в виде
+\[
+	\boldsymbol{w} = (\lambda^{-1}\boldsymbol{C})^*\boldsymbol{v}, ~\boldsymbol{v} > 0,
+\]
+где $\lambda$ --- спектральный радиус матрицы $\boldsymbol{C}$. Аналогично, если $\mu$ --- спектральный радиус матрицы $\boldsymbol{A}$, то все решения задачи оценки рейтингов альтернатив имеют вид: 
+\[
+	\boldsymbol{x} = (\mu^{-1}\boldsymbol{A})^*\boldsymbol{u},~\boldsymbol{u} > 0.
+\]
+
+
+\subsection{План решения многокритериальной задачи}
+\begin{enumerate}
+	\item По матрице $\boldsymbol{C}$ определяем вектор весов критериев:
+	\begin{equation}
+		\boldsymbol{w} = (\mu^{-}\boldsymbol{C})^*\boldsymbol{u},\quad  \boldsymbol{u} > 0,\quad \mu = \mathsf{tr}(\boldsymbol{C_1}) \oplus\ldots\oplus \mathsf{tr}^{1/m}(\boldsymbol{C_m}).
+	\end{equation}.
+	\item Если полученный вектор $\boldsymbol{u}$ не единственный, то находятся наихудший и наилучший дифференцирующий вектор весов:
+	\begin{equation*}
+		\boldsymbol{w}_1 = (\delta^-\boldsymbol{11}^\mathrm{T} \oplus \mu^{-1}\boldsymbol{C})^*\boldsymbol{v_1},\quad  \boldsymbol{v_1} > 0,\quad \delta = \boldsymbol{1}^\mathrm{T}(\mu^{-}C)^*\boldsymbol{1}, 
+	\end{equation*}
+	и
+	\begin{equation*}
+		\boldsymbol{w}_2 =\boldsymbol{P}(\boldsymbol{I}\oplus\boldsymbol{P}^{-}_{sk}\boldsymbol{P})\boldsymbol{v_2},\quad \boldsymbol{v_2} > 0, 
+	\end{equation*}
+	для которого матрица $\boldsymbol{P}$ получена из матрицы $(\mu^{-1}\boldsymbol{C})^*$ вычеркиванием линейно-зависимых столбцов, матрица $\boldsymbol{P}_{lk}$ --- из матрицы $\boldsymbol{P} = (p_{ij})$ заменой на ноль всех элементов, кроме $p_{lk}$, а индексы $k$ и $l$ определяются, исходя из условий
+	\begin{equation*}
+		k = \underset{j}{\arg\max}~\boldsymbol{1}^\mathrm{T}\boldsymbol{p}_j\boldsymbol{p}^-_j\boldsymbol{1},\quad l = \underset{i}{\arg\max} ~p^{-1}_{ik}.
+	\end{equation*}
+	\item С помощью векторов $\boldsymbol{w}_1 = (w^{(1)}_i)$ и $\boldsymbol{w}_2 = (w^{(2)}_i)$ составляются взвешенные
+	суммы матриц парных сравнений:
+	\begin{align*}
+		\boldsymbol{D}_1 &= w^{(1)}_1\boldsymbol{A_1}\oplus\ldots\oplus w^{(1)}_m\boldsymbol{A_m}, \\
+		\boldsymbol{D}_2 &=w^{(2)}_1\boldsymbol{A_1}\oplus\ldots\oplus w^{(2)}_m\boldsymbol{A_m}.
+	\end{align*}
+	\item Вычисляется вектор рейтингов альтернатив для матрицы $\boldsymbol{D_1}$
+	\begin{equation*}
+		\boldsymbol{x} = (v^{-1}_1\boldsymbol{D_1})^*\boldsymbol{u}_1,\quad \boldsymbol{u}_1 > 0,\quad v_1 = \mathsf{tr}\boldsymbol{D}_1\oplus\dots\oplus \mathsf{tr}^{1/n}\boldsymbol{D}_1^n
+	\end{equation*}
+	\item Если полученный вектор не единственный, то вместо него ищется наихудший дифференцирующий вектор
+	\begin{equation*}
+		\boldsymbol{x}_1 = (\delta^{-1}_1\boldsymbol{11}^\mathrm{T}\oplus v^{-1}_1\boldsymbol{D}_1)^*\boldsymbol{u_1},\quad \boldsymbol{u}_1 > 0,\quad \delta_1 = \boldsymbol{1}^\mathrm{T}(v^{-1}\boldsymbol{D_1})^*\boldsymbol{1}.  
+	\end{equation*}
+	\item Вычисляется вектор рейтингов альтернатив для матрицы $\boldsymbol{D_2}$
+	\begin{equation*}
+		\boldsymbol{x}_2 = (v^{-1}_2\boldsymbol{D}_2)^*\boldsymbol{u}_2,\quad \boldsymbol{u_2} > 0,\quad v_2 = \mathsf{tr}\boldsymbol{D}_2\oplus\ldots\oplus\mathsf{tr}^{1/n}(\boldsymbol{D}^n_2).  
+	\end{equation*}
+	
+	\item Если этот вектор не единственный, то вместо него рассматриваем наилучший дифференцирующий вектор
+	\begin{equation}
+		\boldsymbol{x}_2 =\boldsymbol{S}(\boldsymbol{I}\oplus\boldsymbol{S}^-_{sk}\boldsymbol{S})\boldsymbol{u}_2,~ \boldsymbol{u}_2 > 0,  
+	\end{equation}
+	
+	где матрица $\boldsymbol{S}$ получена из матрицы $(v^{-1}_2\boldsymbol{D}_2)^*$ вычеркиванием линейно-зависимых столбцов, матрица $\boldsymbol{S}^-_{lk}$ --- из матрицы $S = (s_{ij})$ обращением
+	в нуль всех элементов, кроме $s_{lk}$, а индексы $k$ и $l$ определяются, исходя из условий
+	\begin{equation}
+		k = \underset{j}{\arg\max}~\boldsymbol{1}^\mathrm{T}\boldsymbol{s}_j\boldsymbol{s}^-_j\boldsymbol{1},~l = \underset{i}{\arg\max} ~s^-_{ik}.
+	\end{equation}
+\end{enumerate}
+
+
+\section{Цель работы}
+  Требуется написать библиотеку и программу на языке C++, символьно решающую одно- и многокритериальную задачу принятия решений методом log-чебышёвской аппроксимации в max-алгебре.
 
 \chapter{Ход работы}
 \section{Выполнено}
   \begin{enumerate}
-    \item Было написано расширение для библиотеки линейной алгебры Eigen, позволяющее работать с символьными вычислениями в max-алгебре.
-    \item Были реализованы некоторые функции, используемые в алгоритме решения задачи: функция вычисления спектрального радиуса и оператор Клини.
+    \item Было написано расширение для библиотеки линейной алгебры Eigen \cite{eigenweb} (версия 3.3.8), позволяющее работать с символьными вычислениями в max-алгебре.
+    \item Был реализован ряд функций, используемых в алгоритме решения задачи.
+  \end{enumerate}
+
+\section{Пример решения многокритериальной задачи}
+	\subsection{Условие}
+
+     \[
+		C = \begin{pmatrix}
+			1 & 1/3 \\
+			3 & 1
+		\end{pmatrix}, \quad
+		A_1 = \begin{pmatrix}
+			1   & 3 & 1/3 \\
+			1/3 & 1 & 1   \\
+			3   & 1 & 1
+		\end{pmatrix}, \quad
+		A_2 =  \begin{pmatrix}
+			1   & 1/3 & 5 \\
+			3 & 1 & 7   \\
+			1/5   & 1/7 & 1
+		\end{pmatrix}.
+	\]
+	\subsection{Решение}
+	Найдём спектральный радиус матрицы \(C\):
+	
+	\[
+	\lambda=\bigoplus_{k=1}^{2} \operatorname{tr}^{1 / k}\left(\boldsymbol{C}^{k}\right) = \operatorname{tr}\boldsymbol{C} \oplus \sqrt{\operatorname{tr}\boldsymbol{C^2}} =
+	\operatorname{tr}\begin{pmatrix}1&1/3\\3&1\end{pmatrix} \oplus \sqrt{\operatorname{tr}\begin{pmatrix}1&1/3\\3&1\end{pmatrix}} = 1.
+	\]
+	В нашем случае, матрица Клини равна самой матрице \(C\).
+	\[
+	C^* = I \oplus C = C.
+	\]
+	Тогда
+	\[
+	(\lambda^{-1}C)^*v = (\lambda^{-1})Cv = Cv, \quad v > 0.
+	\]
+	Столбцы матрицы коллинеарны, поэтому просто возьмём первый из них. Вектор весов критериев
+	\[
+	w = \begin{pmatrix}1 & 3\end{pmatrix}.
+	\]
+	Вычислим матрицу \(B\):
+	\[
+	\boldsymbol{B}=\bigoplus_{k=1}^{2} w_{k} \boldsymbol{A}_{k} = \begin{pmatrix}1&3&1/3\\1/3&1&1\\3&1&1\end{pmatrix} \oplus 3\begin{pmatrix}1&1/3&5\\3&1&7\\1/5&1/7&1\end{pmatrix} = \begin{pmatrix}3&3&15\\ 9&3&21\\ 3&1&3\\\end{pmatrix}.
+	\]
+	Спектральный радиус этой матрицы равен \(\mu = \sqrt{45}\).
+	Тогда вектор рейтингов альтернатив:
+	\begin{align*}
+		\boldsymbol{x} = Su = \left(\frac{1}{\sqrt{45}}B\right)^*u &=
+		I \oplus \frac{1}{\sqrt{45}} B \oplus (\frac{1}{\sqrt{45}} B)^2 =
+		\begin{pmatrix}1& 0& 0\\0& 1& 0\\0& 0& 1\end{pmatrix}
+		\oplus
+		\begin{pmatrix}
+			1/\sqrt{5} & 1/\sqrt{5}   & \sqrt{5} \\
+			3/\sqrt{5} & 1/\sqrt{5}   & 7/\sqrt{5} \\
+			1/\sqrt{5} & 1/(3 \sqrt{5}) & 1/\sqrt{5} \\
+		\end{pmatrix}\\
+		&\oplus
+		\begin{pmatrix}1& 1/3& 7/5\\7/5& 3/5& 3\\1/5& 1/5& 1\end{pmatrix} =
+		\begin{pmatrix} 1&1/\sqrt{5}&\sqrt{5}\\ 7/5&1&7/\sqrt{5}\\ 1/\sqrt{5}&1/5&1 \end{pmatrix}u.
+	\end{align*}
+	
+	Здесь только первый и второй столбцы являются линейно независимыми, значит будем искать наихудший и наилучший дифференцирующий вектор.
+	
+	\subsubsection{Наихудший дифференцирующий вектор}
+	\label{sec:org44470ad}
+	\[
+	\delta = 1^T(\mu^{-1}B)^*1 = 7/\sqrt{5}.
+	\]
+	
+	\begin{align*}
+		\boldsymbol{x_2} &= (\delta^{-1}11^T \oplus \mu^{-1}B)^*u = \begin{pmatrix}\sqrt{45}/15 & \sqrt{45}/15 & \sqrt{45}/3\\ \sqrt{45}/5 & \sqrt{45}/15 & 7\sqrt{45}/15 \\ \sqrt{45}/15 & \sqrt{45}/45 & \sqrt{45}/15 \end{pmatrix}^*u = \\
+		&= I \oplus (\delta^{-1}11^T \oplus \mu^{-1}B) \oplus (\delta^{-1}11^T \oplus \mu^{-1}B)^2 = \\
+		&= \begin{pmatrix} 1&0&0 \\ 0&1&0 \\ 0&0&1 \end{pmatrix}
+		\oplus
+		\begin{pmatrix}1/\sqrt{5}&1/\sqrt{5}&\sqrt{5}\\3/\sqrt{5}&1/\sqrt{5}&7/\sqrt{5}\\1/\sqrt{5}&3\sqrt{5}/7&1/\sqrt{5}\end{pmatrix}
+		\oplus
+		\begin{pmatrix}1&5/7&7/5\\7/5&1&3\\3/7&1/5&1\end{pmatrix} \\
+		&= \begin{pmatrix} 1&5/7&\sqrt{5}\\ 7/5&1&7/\sqrt{5}\\ 1/\sqrt{5}&\sqrt{5}/7&1 \end{pmatrix}u, \quad u > 0.
+	\end{align*}
+	
+	Тут все столбцы коллинеарны. Возьмём первый и нормируем:
+	
+	\begin{align*}
+		\begin{pmatrix}0.3512\\0.4917\\0.1570\end{pmatrix}.
+	\end{align*}
+	
+	Порядок альтернатив: (\Romannum{2}) \(\succ\) (\Romannum{1}) \(\succ\) (\Romannum{3}).
+	\subsubsection{Наилучший дифференцирующий вектор}
+	\label{sec:org896b7a9}
+	Найденный нами наихудший дифференцирующий вектор, это первый столбец матрицы S. Можем предположить, что наилучший дифференцирующий вектор окажется вторым столбцом этой матрицы. Давайте это проверим.
+	
+	Из предыдущего получили, что \(S = \begin{pmatrix}1&1/\sqrt{5}\\7/5&1\\1/\sqrt{5}&1/5\end{pmatrix}\).
+	Для нахождения наилучшего дифференцирующего вектора найдём число \(\Delta\):
+	
+	\[
+	\Delta = \mathbf{1}^{T} \boldsymbol{S} \boldsymbol{S}^{-} \mathbf{1} = \begin{pmatrix}7/5&1\end{pmatrix}\begin{pmatrix}\sqrt{5}\\5\end{pmatrix} = 5.
+	\]
+	Все наилучшие дифференцирующие решения имеют вид
+	
+	\[
+	\boldsymbol{x}_{1}=\boldsymbol{S}\left(\boldsymbol{I} \oplus \boldsymbol{S}_{l k}^{-} \boldsymbol{S}\right) \boldsymbol{v}, \quad \boldsymbol{v}>\mathbf{0},
+	\]
+	где индексы \(k\) и \(l\) определяются из условия
+	
+	\[
+	\mathbf{1}^{T} \boldsymbol{s}_{k} s_{l k}^{-1}=\Delta = 5.
+	\]
+	Это условие выполняется только при \(k=2\) и \(l=3\). Тогда наилучшие решения генерируют столбцы матрицы:
+	
+	\begin{align*}
+		\boldsymbol{x}_{1}&=\boldsymbol{S}\left(\boldsymbol{I} \oplus \boldsymbol{S}_{3,2}^{-} \boldsymbol{S}\right) \boldsymbol{v} = \begin{pmatrix}1&1/\sqrt{5}\\7/5&1\\1/\sqrt{5}&1/5\end{pmatrix} \left( \begin{pmatrix}1&0\\0&1\end{pmatrix} \oplus \begin{pmatrix}0&0&0\\0&0&5\end{pmatrix}\begin{pmatrix}1&1/\sqrt{5}\\7/5&1\\1/\sqrt{5}&1/5\end{pmatrix} \right)\boldsymbol{v} \\
+		&= \begin{pmatrix}1&1/\sqrt{5}\\\sqrt{5}&1\\1/\sqrt{5}&1/5\end{pmatrix}\boldsymbol{v}.
+	\end{align*}
+	Столбцы этой матрицы коллинеарны, возьмём второй.
+	
+	Как и предполагалось, наилучший дифференцирующий вектор коллинеарен второму столбцу матрицы \(S\).
+	
+	\[
+	x_1 = \begin{pmatrix}
+		1/\sqrt{5}\\1\\1/5
+	\end{pmatrix} \approx \begin{pmatrix}
+		0.4472 \\ 1 \\ 0.2
+	\end{pmatrix}.
+	\]
+	
+	Порядок альтернатив: (\Romannum{2}) \(\succ\) (\Romannum{1}) \(\succ\) (\Romannum{3}).
+	
+	\textbf{Общий ответ}: (\Romannum{2}) \(\succ\) (\Romannum{1}) \(\succ\) (\Romannum{3})
+	\subsubsection{Использование программы для вычислений}
+
+
+
+\subsection{Список реализованных функций}
+  \begin{enumerate}
+    \item Арифметические операции над числами: $\oplus$, $\times$, возведение в степень и т. д. 
+    \item Операции над векторами и матрицами: перемножение, транспонирование, возведение в степень и т. д.
+    \item Функции, необходимые в решении задачи: спектральный радиус, получение матрицы Клини, нахождение коэфициентов в задаче нахождение наилучшего дифференцирующего вектора
   \end{enumerate}
 
 \chapter{Заключение}
 \section{Планируется сделать}
   \begin{enumerate}
-    \item Добавить больше функций
-    \item Добавить в программу возможность решения многокритериальных задач
-    \item Сравнить скорость и результаты работы программы с существующими решениями
+  	\item Написать больше необходимых математических функций
+    \item Реализовать возможность получения полного решения многокритериальной задачи принятия решений в полностью автоматическом режиме
+    \item Протестировать скорость работы программы относительно существующих решений
   \end{enumerate}
+
+\addcontentsline{toc}{chapter}{Список литературы}
+\printbibliography
 
 \appendix
 \cleardoublepage\makeatletter\@openrightfalse\makeatother
@@ -136,4 +408,239 @@ tr(m^3)^(1/3) = 800^(1/3)   tr(m^4)^(1/4) = 10
 
 Spectral radius of C = 10
 \end{lstlisting}
+\section{Пример 3. Решение многокритериальной задачи парного сравнения}
+
+\subsubsection{Условие}
+$$
+\begin{array}{l}
+	C=\left(\begin{array}{cccccc}
+		1 & 1 / 4 & 1 / 5 & 1 / 4 & 6 & 1 / 6 \\
+		4 & 1 & 1 / 3 & 3 & 6 & 1 / 2 \\
+		5 & 3 & 1 & 4 & 7 & 3 \\
+		4 & 1 / 3 & 1 / 4 & 1 & 5 & 1 / 5 \\
+		1 / 6 & 1 / 6 & 1 / 7 & 1 / 5 & 1 & 1 / 7 \\
+		6 & 2 & 1 / 3 & 5 & 7 & 1
+	\end{array}\right) \\
+	A_{1}=\left(\begin{array}{ccc}
+		1 & 5 & 8 \\
+		1 / 5 & 1 & 5 \\
+		1 / 8 & 1 / 5 & 1
+	\end{array}\right), \quad A_{2}=\left(\begin{array}{ccc}
+		1 & 7 & 9 \\
+		1 / 7 & 1 & 7 \\
+		1 / 9 & 1 / 7 & 1
+	\end{array}\right), \quad A_{3}=\left(\begin{array}{ccc}
+		1 & 1 / 7 & 1 / 9 \\
+		7 & 1 & 1 / 7 \\
+		9 & 7 & 1
+	\end{array}\right), \\
+	A_{4}=\left(\begin{array}{ccc}
+		1 & 3 & 5 \\
+		1 / 3 & 1 & 4 \\
+		1 / 5 & 1 / 4 & 1
+	\end{array}\right), \quad A_{5}=\left(\begin{array}{ccc}
+		1 & 3 & 5 \\
+		1 / 3 & 1 & 4 \\
+		1 / 5 & 1 / 4 & 1
+	\end{array}\right), \quad A_{6}=\left(\begin{array}{ccc}
+		1 & 7 & 9 \\
+		1 / 7 & 1 & 7 \\
+		1 / 9 & 1 / 7 & 1
+	\end{array}\right)
+\end{array}
+$$
+
+\subsubsection{Код программы}
+
+Задание матриц:
+\begin{lstlisting}[language=c++,basicstyle=\small\ttfamily,keywordstyle=\color{red}]
+MatrixDn C(6, 6);
+C << 1, ma(1, 4), ma(1, 5), ma(1, 4), 6,
+ma(1, 6), 4, 1, ma(1, 3), 3, 6, ma(1, 2), 5, 3, 1,
+4, 7, 3, 4, ma(1, 3), ma(1, 4), 1, 5, ma(1, 5),
+ma(1, 6), ma(1, 6), ma(1, 7), ma(1, 5), 1,
+ma(1, 7), 6, 2, ma(1, 3), 5, 7, 1;
+
+MatrixDn A1(3, 3);
+A1 << 1, 5, 8, ma(1, 5), 1, 5, ma(1, 8), ma(1, 5), 1;
+MatrixDn A2(3, 3);
+A2 << 1, 7, 9, ma(1, 7), 1, 7, ma(1, 9), ma(1, 7), 1;
+MatrixDn A3(3, 3);
+A3 << 1, ma(1, 7), ma(1, 9), 7, 1, ma(1, 7), 9, 7, 1;
+MatrixDn A4(3, 3);
+A4 << 1, 3, 5, ma(1, 3), 1, 4, ma(1, 5), ma(1, 4), 1;
+MatrixDn A5(3, 3);
+A5 << 1, 3, 5, ma(1, 3), 1, 4, ma(1, 5), ma(1, 4), 1;
+MatrixDn A6(3, 3);
+A6 << 1, 7, 9, ma(1, 7), 1, 7, ma(1, 9), ma(1, 7), 1;
+\end{lstlisting}
+
+Вычисление спектрального радиуса:
+\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+auto lambda = spectral_radius(C);
+\end{lstlisting}
+
+Вычисление $(\lambda^{-1}C)^*$:
+\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+MatrixDn Calmoststar = 1 / lambda * C;
+auto w = cleany(Calmoststar);
+\end{lstlisting}
+
+
+Вычисление $\delta$:
+\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+auto delta = (MatrixDn::Ones(1, 6) * w * MatrixDn::Ones(6, 1)).value();
+\end{lstlisting}
+
+Вычисление наихудшего дифференцирующего вектора:
+\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+MatrixDn W1m = (1 / delta * MatrixDn::Ones(6, 6)) + Calmoststar;
+auto w1 = cleany(W1m);
+\end{lstlisting}
+
+Получилась матрица из двух линейнонезависимых векторов. Попробуем получить \enquote{самый наихудший} вектор. Возьмём первые два столбца (известно, что они линейнонезависимы), отнормируем по максимуму и сложим:
+\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+auto worst_vector =
+(w.col(0) / w.col(0).maxCoeff()) + (w.col(1) / w.col(1).maxCoeff());
+\end{lstlisting}
+
+
+Получим взвешенную сумму:
+\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+auto B1 =
+(worst_vector(0) * A1 + worst_vector(1) * A2 + worst_vector(2) * A3 +
+worst_vector(3) * A4 + worst_vector(4) * A5 + worst_vector(5) * A6)
+.eval();
+
+auto nu = spectral_radius(B1);
+
+MatrixDn almost_x1 = 1 / nu * B1;
+auto x1 = cleany(almost_x1);
+\end{lstlisting}
+
+Случай неединственности решения:
+\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+auto delta1 = (MatrixDn::Ones(1, 3) * x1 * MatrixDn::Ones(3, 1)).value();
+MatrixDn almost_x1new = (delta1 * MatrixDn::Ones(3, 3)) + almost_x1;
+auto x1new = cleany(almost_x1new);
+\end{lstlisting}
+
+
+Вычисление наилучшего дифференцирующего вектора.
+Матрица $P$ --- линейно-независимые столбцы матрицы $w$.
+Временно, получение линейно-независимых столбцов происходит
+при помощи отдельного скрипта Wolfram Mathematica:
+\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+MatrixDn P(6, 2);
+P << w.col(0), w.col(1);
+\end{lstlisting}
+
+Получение коэфициентов $k$ и $l$:
+\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+auto [k, l] = best_diff_vector_coefficients(P);
+\end{lstlisting}
+
+
+Вычисление $w_2$:
+\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+MatrixDn Plk_inverse = MatrixDn::Zero(P.rows(), P.cols());
+Plk_inverse(l, k) = 1 / P(l, k);
+
+auto w2 = P * (MatrixDn::Identity(P.cols(), P.cols()) +
+Plk_inverse.transpose() * P);
+\end{lstlisting}
+	
+\subsubsection{Вывод программы}
+
+Вычисление  спектрального радиуса:
+\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+	lambda = (360/7)^(1/5)
+\end{lstlisting}
+
+	Вычисление $(\lambda^{-1}C)^*$:
+\begin{lstlisting}[language=c++,basicstyle=\scriptsize\ttfamily]
+	w = 
+	[1, 1/20*(360/7)^(2/5), 1/60*(360/7)^(3/5), 1/4*(360/7)^(1/5), 7/60*(360/7)^(4/5), 
+	1/20*(360/7)^(2/5)]
+	[7/30*(360/7)^(3/5), 1, 1/5*(360/7)^(1/5), 7/120*(360/7)^(4/5), 7/5*(360/7)^(2/5), 
+	3/5]
+	[7/6*(360/7)^(2/5), 7/120*(360/7)^(4/5), 1, 7/24*(360/7)^(3/5), 7*(360/7)^(1/5), 
+	7/120*(360/7)^(4/5)]
+	[7/90*(360/7)^(4/5), 1/5*(360/7)^(1/5), 1/15*(360/7)^(2/5), 1, 7/15*(360/7)^(3/5), 
+	1/5*(360/7)^(1/5)]
+	[1/6*(360/7)^(1/5), 1/120*(360/7)^(3/5), 1/360*(360/7)^(4/5), 1/24*(360/7)^(2/5), 1, 
+	1/120*(360/7)^(3/5)]
+	[7/18*(360/7)^(3/5), 1, 1/3*(360/7)^(1/5), 7/72*(360/7)^(4/5), 7/3*(360/7)^(2/5), 
+	1]
+\end{lstlisting}
+	
+	Вычисление $\delta$:
+\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+	delta = 7*(360/7)^(1/5)
+	delta^-1 = 1/360*(360/7)^(4/5)
+\end{lstlisting}
+	Вычисление наихудшего дифференцирующего вектора:
+	\begin{lstlisting}[language=c++,basicstyle=\scriptsize\ttfamily]
+	w1 = 
+	[1, 1/20*(360/7)^(2/5), 1/60*(360/7)^(3/5), 1/4*(360/7)^(1/5), 7/60*(360/7)^(4/5), 
+	1/20*(360/7)^(2/5)]
+	[7/30*(360/7)^(3/5), 1, 1/5*(360/7)^(1/5), 7/120*(360/7)^(4/5), 7/5*(360/7)^(2/5), 
+	3/5]
+	[7/6*(360/7)^(2/5), 7/120*(360/7)^(4/5), 1, 7/24*(360/7)^(3/5), 7*(360/7)^(1/5), 
+	7/120*(360/7)^(4/5)]
+	[7/90*(360/7)^(4/5), 1/5*(360/7)^(1/5), 1/15*(360/7)^(2/5), 1, 7/15*(360/7)^(3/5), 
+	1/5*(360/7)^(1/5)]
+	[1/6*(360/7)^(1/5), 1/120*(360/7)^(3/5), 1/360*(360/7)^(4/5), 1/24*(360/7)^(2/5), 1, 
+	1/120*(360/7)^(3/5)]
+	[7/18*(360/7)^(3/5), 1, 1/3*(360/7)^(1/5), 7/72*(360/7)^(4/5), 7/3*(360/7)^(2/5), 
+	1]
+	
+	worst_vector = 
+	[1/60*(360/7)^(3/5)]
+	[1/3*(360/7)^(1/5)]
+	[1]
+	[1/15*(360/7)^(2/5)]
+	[1/360*(360/7)^(4/5)]
+	[1/3*(360/7)^(1/5)]
+	
+	B1 = 
+	[1, 7/3*(360/7)^(1/5), 3*(360/7)^(1/5)]
+	[7, 1, 7/3*(360/7)^(1/5)]
+	[9, 7, 1]
+	nu = (360/7)^(1/10)*sqrt(27)
+	x1 = 
+	[1, 7/9, 1/9*(360/7)^(1/10)*sqrt(27)]
+	[49/9720*(360/7)^(9/10)*sqrt(27), 1, 7/9]
+	[7/1080*(360/7)^(9/10)*sqrt(27), 49/9720*(360/7)^(9/10)*sqrt(27), 1]
+	x1new = 
+	[7/120*(360/7)^(4/5), 7/120*(360/7)^(4/5), 7/120*(360/7)^(4/5)]
+	[7/120*(360/7)^(4/5), 7/120*(360/7)^(4/5), 7/120*(360/7)^(4/5)]
+	[7/120*(360/7)^(4/5), 7/120*(360/7)^(4/5), 7/120*(360/7)^(4/5)]
+\end{lstlisting}
+	Вычисление наилучшего дифференцирующего вектора:
+	\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+	P = [1, 1/20*(360/7)^(2/5)]
+	[7/30*(360/7)^(3/5), 1]
+	[7/6*(360/7)^(2/5), 7/120*(360/7)^(4/5)]
+	[7/90*(360/7)^(4/5), 1/5*(360/7)^(1/5)]
+	[1/6*(360/7)^(1/5), 1/120*(360/7)^(3/5)]
+	[7/18*(360/7)^(3/5), 1]
+\end{lstlisting}
+	Получение коэфициентов $k$ и $l$
+:
+	\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+	k = 0, l = 4
+\end{lstlisting}
+	Вычисление $w_2$:
+	\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+	w2 = 
+	[1, 1/20*(360/7)^(2/5)]
+	[7/30*(360/7)^(3/5), 1]
+	[7/6*(360/7)^(2/5), 7/120*(360/7)^(4/5)]
+	[7/90*(360/7)^(4/5), 1/5*(360/7)^(1/5)]
+	[1/6*(360/7)^(1/5), 1/120*(360/7)^(3/5)]
+	[7/18*(360/7)^(3/5), 1]
+\end{lstlisting}
+
 \end{document}
+

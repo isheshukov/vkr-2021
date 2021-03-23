@@ -12,8 +12,10 @@
   footskip=1cm]{geometry}
 \usepackage{longtable}
 \usepackage{subcaption}
+\usepackage{fancyvrb}
 \usepackage{float}
 \usepackage{listings}
+\lstset{extendedchars=\true}
 \usepackage{xcolor}
 \usepackage{amsmath, amsfonts, amsthm}
 \usepackage{graphics}
@@ -28,8 +30,11 @@
   natbib=true,
   url=true,
 ]{biblatex}
+
+\usepackage{mathtools}
+\usepackage{romannum}
 \hypersetup{unicode=true}
-\addbibresource{./references.bib}
+\addbibresource{./ref.bib}
 \let\vec=\mathbf
 \setcounter{tocdepth}{2}
 \author{Илья Шешуков}
@@ -43,6 +48,7 @@
  pdfcreator={Emacs 26.3},
  pdflang={Russian}}
 
+\newtheorem{utv}{Утверждение}
 
 % Имена без курсива
 \renewcommand*{\mkgostheading}[1]{#1}
