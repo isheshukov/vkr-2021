@@ -123,25 +123,17 @@ int main(int argc, char* argv[]) {
    *    Единичная матрица размерности N
    *        MatrixDn::Identity(N, N);
    */
-  MatrixDn C(6, 6);
-  C << 1, MaxAlgebra(1, 4), MaxAlgebra(1, 5), MaxAlgebra(1, 4), 6,
-      MaxAlgebra(1, 6), 4, 1, MaxAlgebra(1, 3), 3, 6, MaxAlgebra(1, 2), 5, 3, 1,
-      4, 7, 3, 4, MaxAlgebra(1, 3), MaxAlgebra(1, 4), 1, 5, MaxAlgebra(1, 5),
-      MaxAlgebra(1, 6), MaxAlgebra(1, 6), MaxAlgebra(1, 7), MaxAlgebra(1, 5), 1,
-      MaxAlgebra(1, 7), 6, 2, MaxAlgebra(1, 3), 5, 7, 1;
+  MatrixDn C(2, 2);
+  C << 1, ma(1,3), 3, 1;
 
   MatrixDn A1(3, 3);
-  A1 << 1, 5, 8, ma(1, 5), 1, 5, ma(1, 8), ma(1, 5), 1;
+  A1 << 1, 3, ma(1,3), 
+     ma(1, 3), 1, 1, 
+     3, 1, 1;
   MatrixDn A2(3, 3);
-  A2 << 1, 7, 9, ma(1, 7), 1, 7, ma(1, 9), ma(1, 7), 1;
-  MatrixDn A3(3, 3);
-  A3 << 1, ma(1, 7), ma(1, 9), 7, 1, ma(1, 7), 9, 7, 1;
-  MatrixDn A4(3, 3);
-  A4 << 1, 3, 5, ma(1, 3), 1, 4, ma(1, 5), ma(1, 4), 1;
-  MatrixDn A5(3, 3);
-  A5 << 1, 3, 5, ma(1, 3), 1, 4, ma(1, 5), ma(1, 4), 1;
-  MatrixDn A6(3, 3);
-  A6 << 1, 7, 9, ma(1, 7), 1, 7, ma(1, 9), ma(1, 7), 1;
+  A2 << 1, 1/3, 5, 
+     3, 1, 7, 
+     ma(1, 5), ma(1, 7), 1;
 
   /*
    * Вычисление спектрального радиуса
@@ -154,15 +146,29 @@ int main(int argc, char* argv[]) {
    * Вычисление (\lambda^{-1}C)^*
    */
   std::cout << "Вычисление (\\lambda^{-1}C)^*" << std::endl;
-  MatrixDn Calmoststar = 1 / lambda * C;
-  auto w = cleany(Calmoststar);
+  MatrixDn C_ = 1 / lambda * C;
+  auto w = cleany(C_);
   std::cout << "w = " << w.format(MatlabFmt) << std::endl << std::endl;
 
+  auto B = (A1 + 3 * A2).eval();
+  std::cout << "B = " << B.format(MatlabFmt) << std::endl << std::endl;
+
+  /*
+   * Вычисление спектрального радиуса B
+   */
+  std::cout << "Вычисление спектрального радиуса B" << std::endl;
+  auto mu = spectral_radius(B);
+  std::cout << "mu = " << mu << std::endl << std::endl;
+
+  auto S_ = (1/mu*B).eval();
+  auto S = cleany(S_);
+  std::cout << "S = " << S.format(MatlabFmt) << std::endl << std::endl;
+  
   /*
    * Вычисление \delta
    */
   std::cout << "Вычисление \\delta" << std::endl;
-  auto delta = (MatrixDn::Ones(1, 6) * w * MatrixDn::Ones(6, 1)).value();
+  auto delta = (MatrixDn::Ones(1, 2) * w * MatrixDn::Ones(2, 1)).value();
   // .value() нужно, чтобы достать скаляр из матрицы 1x1.
   std::cout << "delta = " << delta << std::endl;
   std::cout << "delta^-1 = " << 1 / delta << std::endl << std::endl;
@@ -170,77 +176,77 @@ int main(int argc, char* argv[]) {
   /*
    * Вычисление наихудшего дифференцирующего вектора
    */
-  std::cout << "Вычисление наихудшего дифференцирующего вектора" << std::endl;
-  MatrixDn W1m = (1 / delta * MatrixDn::Ones(6, 6)) + Calmoststar;
-  auto w1 = cleany(W1m);
-  std::cout << "w1 = " << w1.format(MatlabFmt) << std::endl << std::endl;
+  // std::cout << "Вычисление наихудшего дифференцирующего вектора" << std::endl;
+  // MatrixDn W1m = (1 / delta * MatrixDn::Ones(2, 2)) + Calmoststar;
+  // auto w1 = cleany(W1m);
+  // std::cout << "w1 = " << w1.format(MatlabFmt) << std::endl << std::endl;
 
-  /* Получилась матрица из двух ЛН векторов. Попробуем получить
-   * "самый наихудший" вектор.
-   * Возьмём первые два столбца (я знаю, что они ЛН), отнормируем по максимуму
-   * и сложим.
-   */
+  // /* Получилась матрица из двух ЛН векторов. Попробуем получить
+  //  * "самый наихудший" вектор.
+  //  * Возьмём первые два столбца (я знаю, что они ЛН), отнормируем по максимуму
+  //  * и сложим.
+  //  */
 
-  auto worst_vector =
-      (w.col(0) / w.col(0).maxCoeff()) + (w.col(1) / w.col(1).maxCoeff());
-  std::cout << "worst_vector = " << worst_vector.format(MatlabFmt) << std::endl
-            << std::endl;
+  // auto worst_vector =
+  //     (w.col(0) / w.col(0).maxCoeff()) + (w.col(1) / w.col(1).maxCoeff());
+  // std::cout << "worst_vector = " << worst_vector.format(MatlabFmt) << std::endl
+  //           << std::endl;
 
-  /*
-   * Получим взвешенную сумму.
-   */
+  // /*
+  //  * Получим взвешенную сумму.
+  //  */
 
-  auto B1 =
-      (worst_vector(0) * A1 + worst_vector(1) * A2 + worst_vector(2) * A3 +
-       worst_vector(3) * A4 + worst_vector(4) * A5 + worst_vector(5) * A6)
-          .eval();
+  // auto B1 =
+  //     (worst_vector(0) * A1 + worst_vector(1) * A2 + worst_vector(2) * A3 +
+  //      worst_vector(3) * A4 + worst_vector(4) * A5 + worst_vector(5) * A6)
+  //         .eval();
 
-  auto nu = spectral_radius(B1);
-  std::cout << "B1 = " << B1.format(MatlabFmt) << std::endl;
-  std::cout << "nu = " << nu << std::endl;
+  // auto nu = spectral_radius(B1);
+  // std::cout << "B1 = " << B1.format(MatlabFmt) << std::endl;
+  // std::cout << "nu = " << nu << std::endl;
 
-  MatrixDn almost_x1 = 1 / nu * B1;
-  auto x1 = cleany(almost_x1);
+  // MatrixDn almost_x1 = 1 / nu * B1;
+  // auto x1 = cleany(almost_x1);
 
-  std::cout << "x1 = " << x1.format(MatlabFmt) << std::endl;
+  // std::cout << "x1 = " << x1.format(MatlabFmt) << std::endl;
 
-  /*
-   * Случай неединственности решения.
-   */
+  // /*
+  //  * Случай неединственности решения.
+  //  */
 
-  auto delta1 = (MatrixDn::Ones(1, 3) * x1 * MatrixDn::Ones(3, 1)).value();
-  MatrixDn almost_x1new = (delta1 * MatrixDn::Ones(3, 3)) + almost_x1;
-  auto x1new = cleany(almost_x1new);
-  std::cout << "x1new = " << x1new.format(MatlabFmt) << std::endl;
+  // auto delta1 = (MatrixDn::Ones(1, 3) * x1 * MatrixDn::Ones(3, 1)).value();
+  // MatrixDn almost_x1new = (delta1 * MatrixDn::Ones(3, 3)) + almost_x1;
+  // auto x1new = cleany(almost_x1new);
+  // std::cout << "x1new = " << x1new.format(MatlabFmt) << std::endl;
 
-  /*
-   * Вычисление наилучшего дифференцирующего вектора.
-   * Матрица P --- линейно-независимые столбцы матрицы w.
-   * Временно, получение линейно-независимых столбцов происходит
-   * при помощи отдельного скрипта Wolfram Mathematica.
-   */
-  std::cout << "Вычисление наилучшего дифференцирующего вектора" << std::endl;
-  MatrixDn P(6, 2);
-  P << w.col(0), w.col(1);
-  std::cout << "P = " << P.format(MatlabFmt) << std::endl << std::endl;
+  // /*
+  //  * Вычисление наилучшего дифференцирующего вектора.
+  //  * Матрица P --- линейно-независимые столбцы матрицы w.
+  //  * Временно, получение линейно-независимых столбцов происходит
+  //  * при помощи отдельного скрипта Wolfram Mathematica.
+  //  */
+  // std::cout << "Вычисление наилучшего дифференцирующего вектора" << std::endl;
+  // MatrixDn P(6, 2);
+  // P << w.col(0), w.col(1);
+  // std::cout << "P = " << P.format(MatlabFmt) << std::endl << std::endl;
 
-  /*
-   * Получение коэфициентов k и l.
-   */
-  std::cout << "Получение коэфициентов k и l" << std::endl;
-  auto [k, l] = best_diff_vector_coefficients(P);
-  std::cout << "k = " << k << ", l = " << l << std::endl << std::endl;
+  // /*
+  //  * Получение коэфициентов k и l.
+  //  */
+  // std::cout << "Получение коэфициентов k и l" << std::endl;
+  // auto [k, l] = best_diff_vector_coefficients(P);
+  // std::cout << "k = " << k << ", l = " << l << std::endl << std::endl;
 
-  /*
-   * Вычисление w_2.
-   */
-  std::cout << "Вычисление w_2" << std::endl;
-  MatrixDn Plk_inverse = MatrixDn::Zero(P.rows(), P.cols());
-  Plk_inverse(l, k) = 1 / P(l, k);
+  // /*
+  //  * Вычисление w_2.
+  //  */
+  // std::cout << "Вычисление w_2" << std::endl;
+  // MatrixDn Plk_inverse = MatrixDn::Zero(P.rows(), P.cols());
+  // Plk_inverse(l, k) = 1 / P(l, k);
 
-  auto w2 = P * (MatrixDn::Identity(P.cols(), P.cols()) +
-                 Plk_inverse.transpose() * P);
+  // auto w2 = P * (MatrixDn::Identity(P.cols(), P.cols()) +
+  //                Plk_inverse.transpose() * P);
 
-  std::cout << "w2 = " << w2.format(MatlabFmt) << std::endl;
+  // std::cout << "w2 = " << w2.format(MatlabFmt) << std::endl;
   return 0;
 }
