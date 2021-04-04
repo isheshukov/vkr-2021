@@ -37,6 +37,7 @@ OVERLOAD_OPERATOR_DECL(*, MaxAlgebra);
 
 MaxAlgebra operator+(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
 bool operator<(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
+bool operator==(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
 bool operator>(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
 
 bool isfinite(const MaxAlgebra&);

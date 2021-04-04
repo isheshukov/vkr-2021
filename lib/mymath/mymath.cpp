@@ -19,6 +19,11 @@ MaxAlgebra operator+(const MaxAlgebra& lhs, const MaxAlgebra& rhs) {
   return (lhs < rhs) ? rhs : lhs;
 }
 
+bool operator==(const MaxAlgebra& lhs, const MaxAlgebra& rhs) {
+  return lhs.value == rhs.value;
+}
+
+
 bool operator<(const MaxAlgebra& lhs, const MaxAlgebra& rhs) {
   return (lhs.value.evalf() < rhs.value.evalf()) ? true : false;
 }
