@@ -35,6 +35,19 @@ static Eigen::IOFormat MathematicaFmt(Eigen::FullPrecision,
                                       Eigen::DontAlignCols, ", ", ",\n ", "{",
                                       "}", "{", "}");
 
+MatrixDn matrixWithoutColumn(MatrixDn& matrix, unsigned int colToRemove)
+{
+    auto result = matrix;
+    unsigned int numRows = matrix.rows();
+    unsigned int numCols = matrix.cols()-1;
+
+    if( colToRemove < numCols )
+        result.block(0,colToRemove,numRows,numCols-colToRemove) = result.block(0,colToRemove+1,numRows,numCols-colToRemove);
+    result.conservativeResize(numRows,numCols);
+
+    return result.eval();
+}
+
 /*
  * Функция вычисления спектрального радиуса матрицы.
  */
@@ -49,6 +62,37 @@ MaxAlgebra spectral_radius(MatrixDn& m) {
   }
 
   return radius;
+}
+
+MatrixDn pseudo_inverse(const MatrixDn& A)
+{
+    return A.transpose().cwiseInverse().eval();
+}
+
+/*
+ * Функция невязки.
+ * Delta(A, b) = ...
+ */
+MaxAlgebra residual_function(MatrixDn& A, Eigen::Matrix<MaxAlgebra, -1, 1, 0, -1, 1>& b) {
+    auto Api = pseudo_inverse(A);
+    auto bpi = pseudo_inverse(b);
+
+    return (pseudo_inverse(A*pseudo_inverse((bpi*A).eval()))*b).value();
+}
+
+MatrixDn linearly_independent_system(MatrixDn& A){
+    auto result = A;
+
+    for (int i = 0; i < A.cols(); ++i){
+        auto matrix_without_i_col = matrixWithoutColumn(A, i);
+        auto col = A.col(i).eval();
+        if (residual_function(matrix_without_i_col, col) == 1) {
+            // delete vector
+            result = matrix_without_i_col;
+        }
+    }
+
+    return result;
 }
 
 /*
@@ -176,10 +220,13 @@ int main(int argc, char* argv[]) {
   /*
    * Вычисление наихудшего дифференцирующего вектора
    */
-  // std::cout << "Вычисление наихудшего дифференцирующего вектора" << std::endl;
-  // MatrixDn W1m = (1 / delta * MatrixDn::Ones(2, 2)) + Calmoststar;
-  // auto w1 = cleany(W1m);
-  // std::cout << "w1 = " << w1.format(MatlabFmt) << std::endl << std::endl;
+  std::cout << "Вычисление наихудшего дифференцирующего вектора" << std::endl;
+  MatrixDn W1m = (1 / delta * MatrixDn::Ones(2, 2)) + C_;
+  auto w1 = cleany(W1m);
+  std::cout << "w1 = " << w1.format(MatlabFmt) << std::endl << std::endl;
+
+  auto LI_w1 = linearly_independent_system(S);
+  std::cout << "LI w1 = " << LI_w1.format(MatlabFmt) << std::endl << std::endl;
 
   // /* Получилась матрица из двух ЛН векторов. Попробуем получить
   //  * "самый наихудший" вектор.
