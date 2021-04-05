@@ -9,6 +9,8 @@ pkgs.clangStdenv.mkDerivation {
       cmake
       clang-analyzer
       clang-tools
+      ginac
+      cln
       valgrind
       zip
     ];
