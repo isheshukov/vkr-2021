@@ -1,0 +1,78 @@
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</HEAD>
+<BODY>
+<FONT FACE="Courier New" SIZE="2" COLOR="000000">Sub Main
+
+<P>
+
+<P>	Dim newanalysis As Analysis
+
+<P>	Set newanalysis = Analysis (scBasicStatistics, ActiveInputDataSet)
+
+<P>	Dim oStaDocs As StaDocuments
+
+<P>
+
+<P>	&#39; Basic Statistics and Tables: PUBLIC.STA in workbooklatest.stw
+
+<P>	Dim oAD1 As STABasicStatistics.BasStartup
+
+<P>	Set oAD1 = newanalysis.Dialog
+
+<P>	oAD1.Statistics = scBasCorrelationMatrices
+
+<P>
+
+<P>	newanalysis.Run 
+
+<P>&#39;newanalysis.ByGroupEnabled = True
+
+<P>	newanalysis.ByGroupVariables = &quot; 4&quot;
+
+<P>
+
+<P>
+
+<P>	&#39; Product-Moment and Partial Correlations: PUBLIC.STA in workbooklatest.stw
+
+<P>	Dim oAD2 As STABasicStatistics.BasCorrelation
+
+<P>	Set oAD2 = newanalysis.Dialog
+
+<P>	oAD2.VariableList = &quot;5-48&quot;
+
+<P>	oAD2.TwoVariablesLists = &quot;5-48 | 6-48 5&quot;
+
+<P>	oAD2.DisplayCorrelationMatrix = True
+
+<P>	oAD2.MeansAndStandardDeviations = True
+
+<P>	oAD2.CasewiseDeletionOfMD = True
+
+<P>	oAD2.DisplayLongVariableNames = False
+
+<P>	oAD2.ExtendedPrecisionCalculations = False
+
+<P>	oAD2.PLevelForHighlighting = 0.05
+
+<P>	oAD2.IsColorMapOfSimpleMatrix = True
+
+<P>
+
+<P>	Set oStaDocs = oAD2.Summary
+
+<P>	newanalysis.RouteOutput(oStaDocs).Visible = True
+
+<P>	Set oStaDocs = Nothing
+
+<P>
+
+<P>End Sub
+
+<P>
+
+<P>
+</BODY>
+</HTML>

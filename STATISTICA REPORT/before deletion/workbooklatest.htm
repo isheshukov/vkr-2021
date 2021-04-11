@@ -1,0 +1,687 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>workbooklatest.htm</title>
+<style type="text/css">
+    #lefty
+    {
+        margin: 3px;
+        background-color: white;
+        height: 99%;
+		width: 250px;
+		overflow: auto;
+		white-space: nowrap;
+    }
+    #righty
+    {
+        height: 99%;
+        border-left: solid black 2px;
+    }
+
+    #leftdiv
+    {
+      background-color: white;
+      overflow: auto;
+      white-space: nowrap;
+      height: 100%;
+      width: 20%;
+      position: fixed;
+    }
+    
+    #rightdiv
+    {
+      overflow: auto;
+      height: 100%;
+      position: fixed;
+    }
+    
+    #sizerdiv
+    {
+       background-color: silver;
+       height: 100%;
+       width: 5px;
+       position: fixed;
+       cursor: w-resize;
+    }    
+
+    #myiframe
+    {
+        height: 99%;
+        width: 99%;
+    }
+    body
+    {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+    }
+    .child
+    {
+        margin-left: 33px;
+		/*border: solid 1px blue;*/
+    }
+    .parent
+    {
+       margin-left: 24px;
+		/*border: solid red 1px;*/
+    }
+    
+    #mytable
+    {
+        width: 99%;
+        height: 99%;
+    }
+    #leftcell
+    {
+        width: 250px;
+		 height: 99%;
+    }
+    #rightcell
+    {
+        /*width: 100%;*/
+		height: 99%;
+    }
+	#root
+	{
+		/*border: dotted 1px green;*/
+	}
+</style>
+<script type="text/javascript">
+	var last_element = null
+	
+	function get_content_area()
+	{
+		var o = document.getElementById("rightdiv")
+		if (o != null) return o
+
+		return document.getElementById("righty")
+	}
+	
+	function is_child_of(child, parent)
+	{
+		if (parent == null)
+			return false
+		
+		while (child != null)
+		{
+			if (child.parentNode == parent)
+				return true
+			
+			child = child.parentNode
+		}
+		
+		return false
+	}
+	function hilite_item(src)
+	{
+		if (last_element != null)
+		{
+			last_element.style.backgroundColor = ""
+		}
+        src.style.backgroundColor = "silver"
+		last_element = src
+	}
+
+    function handle_graph(evt, src, g)
+    {
+		hilite_item(src)
+        get_content_area().innerHTML = "<img src=\"" + g + "\">"
+        evt.cancelBubble = true
+    }
+    
+    function handle_spreadsheet(evt, src, ss)
+    {
+		hilite_item(src)
+        var s = "<iframe id='myiframe' src=\"" + ss + "\"><\/iframe>"
+        get_content_area().innerHTML = s
+        evt.cancelBubble = true
+    }
+	function handle_folder(evt, src)
+	{
+		hilite_item(src)
+		get_content_area().innerHTML = ""
+		evt.cancelBubble = true
+	}
+	
+	function get_attrs(src)
+	{
+		var s = ""
+		var l = src.attributes.length
+		for (var i = 0; i < l; ++i)
+		{
+			var attr = src.attributes[i]
+			s += attr.name + " :  " + attr.value + "<br/>"
+		}
+		return s
+	}
+
+	function handle_expand(evt, src)
+	{
+		alert("expand")
+	}
+	function handle_collapse(evt, src)
+	{
+		evt.cancelBubble = true
+		var parentNode = src.parentNode
+		//get_content_area().innerHTML = get_attrs(src)
+		var srcName = src.src
+		if (srcName.indexOf("minus.gif") != -1)
+		{
+			srcName = srcName.replace(/minus\.gif/, "plus.gif")
+
+			if (is_child_of(last_element, parentNode))
+			{
+				var spans = parentNode.getElementsByTagName("span")
+				hilite_item(spans[0])
+				
+			}
+			var elems = parentNode.getElementsByTagName("DIV")
+			for (var i = 0; i < elems.length; ++i)
+			{
+				var elem = elems[i]
+				if (elem.parentNode == parentNode)
+					elem.style.display = "none"
+			}
+		}
+		else
+		{
+			srcName = srcName.replace(/plus\.gif/, "minus.gif")
+
+			var elems = parentNode.getElementsByTagName("DIV")
+			for (var i = 0; i < elems.length; ++i)
+			{
+				var elem = elems[i]
+				if (elem.parentNode == parentNode)
+					elem.style.display = ""
+			}
+		}
+		src.src = srcName
+	}
+
+	function unrenderable(evt, src)
+	{
+		hilite_item(src)
+		get_content_area().innerHTML = "Cannot render item in web page"
+	}
+	
+	function dump_test_item()
+	{
+		get_content_area().innerHTML = get_attrs(document.getElementById("testitem"))
+	}
+   
+    //global variable used for splitter bar status 
+    var mouseStatus='up';
+   
+    function drag_start()
+    {
+        mouseStatus = 'down';
+        var myiframe = document.getElementById('myiframe');
+        if (myiframe != null)
+            myiframe.style.display = 'none';
+    }
+   
+    function drag_move(evt)
+    {
+        if (mouseStatus == 'down')
+        {
+            resize_divs(evt.clientX - 3);
+        }
+    }
+    
+    function drag_end()
+    {
+        if (mouseStatus == 'down')
+        {
+            mouseStatus = 'up';
+            var myiframe = document.getElementById('myiframe');
+            if (myiframe != null)
+                myiframe.style.display = '';
+        }
+    }
+    
+    function resize_divs(leftDivWidth)
+    {
+        var maxWidth = window.document.body.clientWidth;
+        
+        if (leftDivWidth == null) // will be undefined when called by onresize event
+        {
+            leftDivWidth = document.getElementById('leftdiv').offsetWidth;            
+        }
+        
+        if (leftDivWidth < 20)
+            leftDivWidth = 20;
+        if (leftDivWidth > maxWidth - 20)
+            leftDivWidth = maxWidth - 20;
+        
+        var sizerdiv = document.getElementById('sizerdiv');
+        document.getElementById('leftdiv').style.width=leftDivWidth+'px';
+        sizerdiv.style.left=leftDivWidth+1+'px';
+        document.getElementById('rightdiv').style.left=leftDivWidth+sizerdiv.offsetWidth+1+'px';
+        document.getElementById('rightdiv').style.width = (maxWidth - leftDivWidth - sizerdiv.offsetWidth - 1)+'px';
+    }   
+</script>
+</head>
+<body onmousemove='drag_move(event)' onmouseup='drag_end()' onload='resize_divs()' onresize='resize_divs()'>
+<div id='leftdiv'>
+<div id='root'><span onclick='handle_folder(event, this)'><img src='workbooklatest_files/folder.gif' />&nbsp;workbooklatest.htm</span></div><div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/macro1.htm')" title='Macro1'>
+&nbsp;<img src='workbooklatest_files/macro.gif' />&nbsp;Macro1</span>
+</div><div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/report1.htm')" title='Report1'>
+&nbsp;<img src='workbooklatest_files/report.gif' />&nbsp;Report1</span>
+</div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' />
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss1.htm')" title='PUBLIC.STA'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;PUBLIC.STA</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Basic Statistics/Tables (PUBLIC.STA in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Basic Statistics/Tables (PUBLIC.STA in workbooklatest.stw)</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Correlations dialog'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Correlations dialog</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='All Groups'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;All Groups</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss2.htm')" title='Correlations (PUBLIC.STA in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Correlations (PUBLIC.STA in workbooklatest.stw)</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=IIA'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=IIA</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss3.htm')" title='Correlations (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Correlations (Spreadsheet in workbooklatest.stw)</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=I'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=I</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss4.htm')" title='Correlations (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Correlations (Spreadsheet in workbooklatest.stw)</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=IIB'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=IIB</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss5.htm')" title='Correlations (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Correlations (Spreadsheet in workbooklatest.stw)</span>
+</div></div></div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Basic Statistics/Tables (PUBLIC.STA in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Basic Statistics/Tables (PUBLIC.STA in workbooklatest.stw)</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Correlations dialog'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Correlations dialog</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='All Groups'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;All Groups</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss6.htm')" title='Correlations (PUBLIC.STA in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Correlations (PUBLIC.STA in workbooklatest.stw)</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=IIA'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=IIA</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss7.htm')" title='Correlations (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Correlations (Spreadsheet in workbooklatest.stw)</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=I'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=I</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss8.htm')" title='Correlations (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Correlations (Spreadsheet in workbooklatest.stw)</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=IIB'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=IIB</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss9.htm')" title='Correlations (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Correlations (Spreadsheet in workbooklatest.stw)</span>
+</div></div></div></div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' />
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss10.htm')" title='PUBLIC.SMALL'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;PUBLIC.SMALL</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Basic Statistics/Tables (PUBLIC.SMALL in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Basic Statistics/Tables (PUBLIC.SMALL in workbooklatest.stw)</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Descriptive statistics dialog'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Descriptive statistics dialog</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss11.htm')" title='Descriptive Statistics (PUBLIC.SMALL in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Descriptive Statistics (PUBLIC.SMALL in workbooklatest.stw)</span>
+</div></div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Matrix Plots (PUBLIC.SMALL in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Matrix Plots (PUBLIC.SMALL in workbooklatest.stw)</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='All Groups'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;All Groups</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph1.png')" title='Matrix Plot'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Matrix Plot</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=IIA'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=IIA</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph2.png')" title='Matrix Plot'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Matrix Plot</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=I'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=I</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph3.png')" title='Matrix Plot'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Matrix Plot</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=IIB'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=IIB</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph4.png')" title='Matrix Plot'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Matrix Plot</span>
+</div></div></div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' />
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss12.htm')" title='LOG_PUBLIC.SMALL'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;LOG_PUBLIC.SMALL</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Matrix Plots (LOG_PUBLIC.SMALL in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Matrix Plots (LOG_PUBLIC.SMALL in workbooklatest.stw)</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='All Groups'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;All Groups</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph5.png')" title='Matrix Plot'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Matrix Plot</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=IIA'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=IIA</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph6.png')" title='Matrix Plot'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Matrix Plot</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=I'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=I</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph7.png')" title='Matrix Plot'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Matrix Plot</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=IIB'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=IIB</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph8.png')" title='Matrix Plot'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Matrix Plot</span>
+</div></div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='2D Scatterplots (LOG_PUBLIC.SMALL in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;2D Scatterplots (LOG_PUBLIC.SMALL in workbooklatest.stw)</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph9.png')" title='Scatterplot of LOG_NEW10 against AVRMATH'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Scatterplot of LOG_NEW10 against AVRMATH</span>
+</div></div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' />
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss13.htm')" title='LOG_PUBLIC.SMALL.CLEAN'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;LOG_PUBLIC.SMALL.CLEAN</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Matrix Plots (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Matrix Plots (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='All Groups'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;All Groups</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph10.png')" title='Matrix Plot'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Matrix Plot</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=IIA'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=IIA</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph11.png')" title='Matrix Plot'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Matrix Plot</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=I'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=I</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph12.png')" title='Matrix Plot'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Matrix Plot</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=IIB'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=IIB</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph13.png')" title='Matrix Plot'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Matrix Plot</span>
+</div></div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='2D Scatterplots (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;2D Scatterplots (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph14.png')" title='Scatterplot of SAL_AC against LOG_APP_REC'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Scatterplot of SAL_AC against LOG_APP_REC</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph15.png')" title='Scatterplot of SAL_AC against LOG_APP_REC'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Scatterplot of SAL_AC against LOG_APP_REC</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph16.png')" title='Scatterplot of SAL_AC against LOG_APP_REC; categorized by TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Scatterplot of SAL_AC against LOG_APP_REC; categorized by TYPE</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='2D Scatterplots (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;2D Scatterplots (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph17.png')" title='Scatterplot of R_B_COST against SAL_ALL'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Scatterplot of R_B_COST against SAL_ALL</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph18.png')" title='Scatterplot of R_B_COST against SAL_ALL; categorized by TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Scatterplot of R_B_COST against SAL_ALL; categorized by TYPE</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='2D Categorized Scatterplots (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;2D Categorized Scatterplots (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph19.png')" title='Scatterplot of AVRMATH against AVRMATH; categorized by TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Scatterplot of AVRMATH against AVRMATH; categorized by TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph20.png')" title='Scatterplot of LOG_APP_REC against AVRMATH; categorized by TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Scatterplot of LOG_APP_REC against AVRMATH; categorized by TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph21.png')" title='Scatterplot of LOG_NEW10 against AVRMATH; categorized by TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Scatterplot of LOG_NEW10 against AVRMATH; categorized by TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph22.png')" title='Scatterplot of R_B_COST against AVRMATH; categorized by TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Scatterplot of R_B_COST against AVRMATH; categorized by TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph23.png')" title='Scatterplot of SAL_AC against AVRMATH; categorized by TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Scatterplot of SAL_AC against AVRMATH; categorized by TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph24.png')" title='Scatterplot of SAL_ALL against AVRMATH; categorized by TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Scatterplot of SAL_ALL against AVRMATH; categorized by TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph25.png')" title='Scatterplot of LOG_NUM_ALL against AVRMATH; categorized by TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Scatterplot of LOG_NUM_ALL against AVRMATH; categorized by TYPE</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='2D Box Plots (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;2D Box Plots (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph26.png')" title='Box Plot of AVRMATH grouped by  TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Box Plot of AVRMATH grouped by  TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph27.png')" title='Box Plot of LOG_APP_REC grouped by  TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Box Plot of LOG_APP_REC grouped by  TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph28.png')" title='Box Plot of LOG_NEW10 grouped by  TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Box Plot of LOG_NEW10 grouped by  TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph29.png')" title='Box Plot of R_B_COST grouped by  TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Box Plot of R_B_COST grouped by  TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph30.png')" title='Box Plot of SAL_AC grouped by  TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Box Plot of SAL_AC grouped by  TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph31.png')" title='Box Plot of SAL_ALL grouped by  TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Box Plot of SAL_ALL grouped by  TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph32.png')" title='Box Plot of LOG_NUM_ALL grouped by  TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Box Plot of LOG_NUM_ALL grouped by  TYPE</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Categorized Normal Probability Plots (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Categorized Normal Probability Plots (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph33.png')" title='Normal Probability Plot of AVRMATH; categorized by TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Normal Probability Plot of AVRMATH; categorized by TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph34.png')" title='Normal Probability Plot of LOG_APP_REC; categorized by TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Normal Probability Plot of LOG_APP_REC; categorized by TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph35.png')" title='Normal Probability Plot of LOG_NEW10; categorized by TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Normal Probability Plot of LOG_NEW10; categorized by TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph36.png')" title='Normal Probability Plot of R_B_COST; categorized by TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Normal Probability Plot of R_B_COST; categorized by TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph37.png')" title='Normal Probability Plot of SAL_AC; categorized by TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Normal Probability Plot of SAL_AC; categorized by TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph38.png')" title='Normal Probability Plot of SAL_ALL; categorized by TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Normal Probability Plot of SAL_ALL; categorized by TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph39.png')" title='Normal Probability Plot of LOG_NUM_ALL; categorized by TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Normal Probability Plot of LOG_NUM_ALL; categorized by TYPE</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Distribution Fitting (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Distribution Fitting (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Distribution fitting dialog'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Distribution fitting dialog</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph40.png')" title='Variable: AVRMATH, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: AVRMATH, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph41.png')" title='Variable: LOG_APP_REC, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: LOG_APP_REC, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph42.png')" title='Variable: LOG_NEW10, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: LOG_NEW10, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph43.png')" title='Variable: R_B_COST, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: R_B_COST, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph44.png')" title='Variable: SAL_AC, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: SAL_AC, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph45.png')" title='Variable: SAL_ALL, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: SAL_ALL, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph46.png')" title='Variable: LOG_NUM_ALL, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: LOG_NUM_ALL, Distribution: Normal</span>
+</div></div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Distribution Fitting (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Distribution Fitting (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Distribution fitting dialog'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Distribution fitting dialog</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph47.png')" title='Variable: AVRMATH, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: AVRMATH, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph48.png')" title='Variable: LOG_APP_REC, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: LOG_APP_REC, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph49.png')" title='Variable: LOG_NEW10, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: LOG_NEW10, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph50.png')" title='Variable: R_B_COST, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: R_B_COST, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph51.png')" title='Variable: SAL_AC, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: SAL_AC, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph52.png')" title='Variable: SAL_ALL, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: SAL_ALL, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph53.png')" title='Variable: LOG_NUM_ALL, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: LOG_NUM_ALL, Distribution: Normal</span>
+</div></div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Distribution Fitting (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Distribution Fitting (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Distribution fitting dialog'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Distribution fitting dialog</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph54.png')" title='Variable: AVRMATH, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: AVRMATH, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph55.png')" title='Variable: LOG_APP_REC, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: LOG_APP_REC, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph56.png')" title='Variable: LOG_NEW10, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: LOG_NEW10, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph57.png')" title='Variable: R_B_COST, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: R_B_COST, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph58.png')" title='Variable: SAL_AC, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: SAL_AC, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph59.png')" title='Variable: SAL_ALL, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: SAL_ALL, Distribution: Normal</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph60.png')" title='Variable: LOG_NUM_ALL, Distribution: Normal'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Variable: LOG_NUM_ALL, Distribution: Normal</span>
+</div></div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='2D Box Plots (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;2D Box Plots (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+<div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph61.png')" title='Box Plot of AVRMATH grouped by  TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Box Plot of AVRMATH grouped by  TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph62.png')" title='Box Plot of LOG_APP_REC grouped by  TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Box Plot of LOG_APP_REC grouped by  TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph63.png')" title='Box Plot of LOG_NEW10 grouped by  TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Box Plot of LOG_NEW10 grouped by  TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph64.png')" title='Box Plot of R_B_COST grouped by  TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Box Plot of R_B_COST grouped by  TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph65.png')" title='Box Plot of SAL_AC grouped by  TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Box Plot of SAL_AC grouped by  TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph66.png')" title='Box Plot of SAL_ALL grouped by  TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Box Plot of SAL_ALL grouped by  TYPE</span>
+</div><div class='child'>
+<span onclick="handle_graph(event, this, 'workbooklatest_files/graph67.png')" title='Box Plot of LOG_NUM_ALL grouped by  TYPE'>
+&nbsp;<img src='workbooklatest_files/graph.gif' />&nbsp;Box Plot of LOG_NUM_ALL grouped by  TYPE</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Basic Statistics/Tables (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Basic Statistics/Tables (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='T-test for independent samples (groups)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;T-test for independent samples (groups)</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='All Groups'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;All Groups</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss14.htm')" title='T-tests; Grouping: TYPE (Casewise deletion of missing data) (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;T-tests; Grouping: TYPE (Casewise deletion of missing data) (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+</div></div></div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Nonparametrics (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Nonparametrics (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Nonparametric comparisons of two groups dialog'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Nonparametric comparisons of two groups dialog</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss15.htm')" title='Mann-Whitney U Test (w/ continuity correction) (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Mann-Whitney U Test (w/ continuity correction) (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+</div></div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Basic Statistics/Tables (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Basic Statistics/Tables (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Correlations dialog'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Correlations dialog</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='All Groups'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;All Groups</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss16.htm')" title='Correlations (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Correlations (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=IIA'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=IIA</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss17.htm')" title='Correlations (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Correlations (Spreadsheet in workbooklatest.stw)</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=I'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=I</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss18.htm')" title='Correlations (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Correlations (Spreadsheet in workbooklatest.stw)</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=IIB'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=IIB</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss19.htm')" title='Correlations (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Correlations (Spreadsheet in workbooklatest.stw)</span>
+</div></div></div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Nonparametrics (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Nonparametrics (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Nonparametric (rank-order) correlations dialog'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Nonparametric (rank-order) correlations dialog</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=IIA'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=IIA</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss20.htm')" title='Spearman Rank Order Correlations (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Spearman Rank Order Correlations (Spreadsheet in workbooklatest.stw)</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=I'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=I</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss21.htm')" title='Spearman Rank Order Correlations (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Spearman Rank Order Correlations (Spreadsheet in workbooklatest.stw)</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=IIB'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=IIB</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss22.htm')" title='Spearman Rank Order Correlations (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Spearman Rank Order Correlations (Spreadsheet in workbooklatest.stw)</span>
+</div></div></div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Basic Statistics/Tables (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Basic Statistics/Tables (LOG_PUBLIC.SMALL.CLEAN in workbooklatest.stw)</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='Correlations dialog'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;Correlations dialog</span>
+<div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=IIA'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=IIA</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss23.htm')" title='Partial correlations, controlling for: (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Partial correlations, controlling for: (Spreadsheet in workbooklatest.stw)</span>
+</div><div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss24.htm')" title='Partial Correlations (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Partial Correlations (Spreadsheet in workbooklatest.stw)</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=I'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=I</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss25.htm')" title='Partial correlations, controlling for: (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Partial correlations, controlling for: (Spreadsheet in workbooklatest.stw)</span>
+</div><div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss26.htm')" title='Partial Correlations (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Partial Correlations (Spreadsheet in workbooklatest.stw)</span>
+</div></div><div class='parent'><img src='workbooklatest_files/minus.gif' onclick='handle_collapse(event, this)' /><span onclick="handle_folder(event, this)" title='TYPE=IIB'>
+&nbsp;<img src='workbooklatest_files/folder.gif' />&nbsp;TYPE=IIB</span>
+<div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss27.htm')" title='Partial correlations, controlling for: (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Partial correlations, controlling for: (Spreadsheet in workbooklatest.stw)</span>
+</div><div class='child'>
+<span onclick="handle_spreadsheet(event, this, 'workbooklatest_files/ss28.htm')" title='Partial Correlations (Spreadsheet in workbooklatest.stw)'>
+&nbsp;<img src='workbooklatest_files/ss.gif' />&nbsp;Partial Correlations (Spreadsheet in workbooklatest.stw)</span>
+</div></div></div></div></div></div>
+<div id='sizerdiv' onmousedown='drag_start();'></div><div id='rightdiv'></div>
+</body>
+</html>
