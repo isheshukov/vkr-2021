@@ -14,12 +14,12 @@ class MaxAlgebra {
   MaxAlgebra(GiNaC::ex val) : value(val){};
   MaxAlgebra(int num, int den) : value(GiNaC::numeric(num, den)){};
 
-  friend MaxAlgebra operator+(const MaxAlgebra& lhs, const MaxAlgebra& rhs){
+  friend MaxAlgebra<Op> operator+(const MaxAlgebra<Op>& lhs, const MaxAlgebra<Op>& rhs){
       return (lhs < rhs) ? rhs : lhs;
   };
 
-  friend MaxAlgebra operator*(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
-  friend MaxAlgebra operator/(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
+  friend MaxAlgebra<Op> operator*(const MaxAlgebra<Op>& lhs, const MaxAlgebra<Op>& rhs);
+  friend MaxAlgebra<Op> operator/(const MaxAlgebra<Op>& lhs, const MaxAlgebra<Op>& rhs);
 
 
   friend std::ostream& operator<<(std::ostream& out, const MaxAlgebra& val) {
@@ -27,42 +27,42 @@ class MaxAlgebra {
       out << val.value;
       return out;
   }
-  MaxAlgebra& operator=(const MaxAlgebra& rhs) {
+  MaxAlgebra<Op>& operator=(const MaxAlgebra& rhs) {
       this->value = rhs.value;
       return *this;
   };
 
-  MaxAlgebra& operator+=(const MaxAlgebra& rhs) {
+  MaxAlgebra<Op>& operator+=(const MaxAlgebra& rhs) {
       *this = *this + rhs;
       return *this;
   };
-  MaxAlgebra& operator*=(const MaxAlgebra& rhs) {
+  MaxAlgebra<Op>& operator*=(const MaxAlgebra& rhs) {
       *this = this * rhs;
       return *this;
   };
-  MaxAlgebra& operator/=(const MaxAlgebra& rhs) {
+  MaxAlgebra<Op>& operator/=(const MaxAlgebra& rhs) {
       *this = this / rhs;
       return *this;
   };
 
-  friend bool operator<(const MaxAlgebra& lhs, const MaxAlgebra& rhs) {
+  friend bool operator<(const MaxAlgebra<Op>& lhs, const MaxAlgebra<Op>& rhs) {
       return lhs.value.evalf() < rhs.value.evalf();
   };
-  friend bool operator==(const MaxAlgebra& lhs, const MaxAlgebra& rhs) {
+  friend bool operator==(const MaxAlgebra<Op>& lhs, const MaxAlgebra<Op>& rhs) {
       return lhs.value == rhs.value;
   };
-  friend bool operator>(const MaxAlgebra& lhs, const MaxAlgebra& rhs) {
+  friend bool operator>(const MaxAlgebra<Op>& lhs, const MaxAlgebra<Op>& rhs) {
       return !(lhs < rhs);
   };
 
 
-  MaxAlgebra& abs(const MaxAlgebra& rhs) { return MaxAlgebra(GiNaC::abs(rhs.value)); }
+  MaxAlgebra<Op>& abs(const MaxAlgebra<Op>& rhs) { return MaxAlgebra<Op>(GiNaC::abs(rhs.value)); }
 
   explicit operator GiNaC::ex() { return value; }
-  friend MaxAlgebra pow(const MaxAlgebra& lhs, const MaxAlgebra& rhs) {
+  friend MaxAlgebra<Op> pow(const MaxAlgebra<Op>& lhs, const MaxAlgebra<Op>& rhs) {
       return GiNaC::pow(lhs.value, rhs.value);
   };
-  friend bool isfinite(const MaxAlgebra&);
+  friend bool isfinite(const MaxAlgebra<Op>&);
 };
 
 using MaxTimes = MaxAlgebra<std::multiplies<void>>;
