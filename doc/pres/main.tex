@@ -172,8 +172,6 @@ citestyle=gost-authoryear
 	\begin{itemize}
 	\item В настоящее время нет общедоступной библиотеки, реализующей данный метод решения многокритериальных задач принятия решений.
 	
-	\item В качестве языка реализации, из-за развитых библиотек линейной алгебры, а также за потенциально большую скорость работы, был выбран \texttt{C++}.
-	
 	\item Также было принято решение использовать символьные вычисления, а не численные расчёты. Это обусловлено тем, что используя данный метод решение задачи можно получить в аналитическом виде, а также для большей точности.
 	\end{itemize}
 \end{frame}
@@ -181,7 +179,7 @@ citestyle=gost-authoryear
 \begin{frame}{Мотивация}
   Выбор используемых технологий обусловлен следующим:
 	\begin{itemize}
-    \item Встраиваемость: например, библиотеку на \texttt{C++} можно использовать в языках \texttt{Python}, \texttt{R}, \texttt{Javascript} (через \texttt{NodeJS}) и многих других.
+    \item Встраиваемость: например, библиотеку на \texttt{C++} можно использовать в языках \texttt{Python}, \texttt{R}, \texttt{Javascript} (через \texttt{NodeJS} или \texttt{wasm}) и многих других.
     \item Доступность библиотек с открытым исходным кодом позволяет использовать библиотеку на бóльшем числе процессорных архитектур и операционных систем.
     \item Данное решение более специализировано за счёт чего можно достичь бóльшей производительности и меньшего веса программы, по сравнению с написанием программы для существующих систем компьютерной алгебры.
 	\end{itemize}
@@ -202,21 +200,74 @@ citestyle=gost-authoryear
 	\end{block}
 \end{frame}
 
+\defverbatim[colored]\maxalglst{
+\begin{lstlisting}[language=C++,basicstyle=\tiny\ttfamily,keywordstyle=\color{blue}]
+Template<typename Op>
+class MaxAlgebra {
+ public:
+  GiNaC::ex value;
+  MaxAlgebra() : value(){};
+  ...
+  friend MaxAlgebra operator+(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
+  friend MaxAlgebra operator*(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
+  friend MaxAlgebra operator/(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
+  friend bool operator<(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
+  friend bool operator==(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
+  friend bool operator>(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
+  friend MaxAlgebra pow(const MaxAlgebra& lhs, const MaxAlgebra& rhs);
+  friend std::ostream& operator<<(std::ostream& out, const MaxAlgebra& val);
+  ...
+  MaxAlgebra& operator=(const MaxAlgebra& rhs);
+  MaxAlgebra& operator+=(const MaxAlgebra& rhs);
+  MaxAlgebra& operator*=(const MaxAlgebra& rhs);
+  MaxAlgebra& operator/=(const MaxAlgebra& rhs);
+  MaxAlgebra& abs(const MaxAlgebra& rhs);
+};
+\end{lstlisting}
+}
+
+\defverbatim[colored]\maxplustimeslst{
+\begin{lstlisting}[language=C++,basicstyle=\tiny\ttfamily,keywordstyle=\color{blue}]
+
+using MaxTimes = MaxAlgebra<std::multiplies<void>>;
+using MaxPlus = MaxAlgebra<std::plus<void>>;
+
+MaxPlus operator*(const MaxPlus& lhs, const MaxPlus& rhs);
+MaxPlus operator/(const MaxPlus& lhs, const MaxPlus& rhs);
+...
+MaxTimes operator*(const MaxTimes& lhs, const MaxTimes& rhs);
+MaxTimes operator/(const MaxTimes& lhs, const MaxTimes& rhs);
+\end{lstlisting}
+}
+
 \begin{frame}
 Библиотека представляет собой
 		\begin{enumerate}
 			\item Класс \texttt{MaxAlgebra} реализующий операции в max-алгебре.
-			\item Две специализации класса реализующие операции в max-+ и max-$\times$-алгебре.
-			\item Расширение для библиотеки \texttt{Eigen}, позволяющее использовать \texttt{MaxAlgebra} в качестве элементов матрицы.
-			\item Набор функций, участвующих в алгоритме решения задачи: нахождение тропического определителя, спектрального радиуса, оператор Клини и т. д.
+      \maxalglst
 		\end{enumerate}
+\end{frame}
 
+\begin{frame}
+		\begin{enumerate}
+      \setcounter{enumi}{1}
+			\item Две специализации класса реализующие операции в max-+ и max-$\times$-алгебре.
+      \maxplustimeslst
+		\end{enumerate}
+\end{frame}
+
+\begin{frame}
+		\begin{enumerate}
+      \setcounter{enumi}{2}
+			\item Расширение для библиотеки \texttt{Eigen}, позволяющее использовать \texttt{MaxAlgebra} в качестве элементов матрицы.
+			\item Набор функций, участвующих в алгоритме решения задачи: нахождение тропического определителя, спектрального радиуса, оператор Клини, нахождение линейнонезависимых векторов и т. д.
+		\end{enumerate}
 \end{frame}
 
 \begin{frame}{Дальнейшие планы}
 	\begin{enumerate}
-		\item Реализовать возможность получения полного решения многокритериальной задачи принятия решений в полностью автоматическом режиме.
 		\item Протестировать скорость работы программы относительно существующих решений.
+		\item Сделать более удобный интерфейс.
 	\end{enumerate}
 \end{frame}
 

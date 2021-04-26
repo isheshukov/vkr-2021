@@ -65,27 +65,24 @@ class MaxAlgebra {
   friend bool isfinite(const MaxAlgebra&);
 };
 
-MaxAlgebra<std::plus<void>> operator*(const MaxAlgebra<std::plus<void>>& lhs,
-                                      const MaxAlgebra<std::plus<void>>& rhs) {
-    return MaxAlgebra<std::plus<void>>(lhs.value + rhs.value);
-
-}
-MaxAlgebra<std::plus<void>> operator/(const MaxAlgebra<std::plus<void>>& lhs,
-                                      const MaxAlgebra<std::plus<void>>& rhs) {
-    return MaxAlgebra<std::plus<void>>(lhs.value - rhs.value);
-}
-
-MaxAlgebra<std::multiplies<void>> operator*(const MaxAlgebra<std::multiplies<void>>& lhs,
-                                            const MaxAlgebra<std::multiplies<void>>& rhs) {
-    return MaxAlgebra<std::multiplies<void>>(lhs.value * rhs.value);
-}
-MaxAlgebra<std::multiplies<void>> operator/(const MaxAlgebra<std::multiplies<void>>& lhs,
-                                            const MaxAlgebra<std::multiplies<void>>& rhs) {
-    return MaxAlgebra<std::multiplies<void>>(lhs.value / rhs.value);
-}
-
 using MaxTimes = MaxAlgebra<std::multiplies<void>>;
 using MaxPlus = MaxAlgebra<std::plus<void>>;
+
+MaxPlus operator*(const MaxPlus& lhs, const MaxPlus& rhs) {
+    return MaxPlus(lhs.value + rhs.value);
+}
+MaxPlus operator/(const MaxPlus& lhs, const MaxPlus& rhs) {
+    return MaxPlus(lhs.value - rhs.value);
+}
+
+MaxTimes operator*(const MaxTimes& lhs, const MaxTimes& rhs) {
+    return MaxTimes(lhs.value * rhs.value);
+}
+MaxTimes operator/(const MaxTimes& lhs, const MaxTimes& rhs) {
+    return MaxTimes(lhs.value / rhs.value);
+}
+
+
 
 
 namespace Eigen {
