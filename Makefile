@@ -7,6 +7,9 @@ name-slides := slides-$(now)
 all: lin win doc
 doc: thesis slides
 
+clean:
+	rm -rf dist/*
+
 lin:
 	git archive --format=zip -o dist/$(name-lin).zip HEAD
 
