@@ -1,0 +1,524 @@
+\documentclass[11pt]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[english, russian]{babel}
+\usepackage{nicefrac}
+\usepackage{mathtools, amsmath, amsfonts}
+\usepackage{listings}
+\usepackage{bm}
+
+\usepackage{csquotes}
+
+
+\usepackage[
+backend=biber, 
+sorting=nyt,
+bibstyle=gost-authoryear,
+citestyle=gost-authoryear
+]{biblatex}
+
+\addbibresource{./ref.bib}
+
+\usetheme{Madrid}
+
+\makeatletter
+\defbeamertemplate*{footline}{infolineslong}
+{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.3\paperwidth,ht=2.5ex,dp=1ex,center]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor\expandafter\beamer@ifempty\expandafter{\beamer@shortinstitute}{}{~~(\insertshortinstitute)}
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.55\paperwidth,ht=2.5ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle[width=\textwidth, respectlinebreaks]
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.15\paperwidth,ht=2.5ex,dp=1ex,right]{date in head/foot}%
+%    \usebeamerfont{date in head/foot}\insertshortdate{}\hspace*{2em}
+\insertframenumber{} / \inserttotalframenumber\hspace*{2ex} 
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+
+\uselanguage{Russian}
+\languagepath{Russian}
+
+
+\makeatother
+\title[Разработка алгоритмов и ПО поддержки принятия решений]{Разработка вычислительных алгоритмов и программных средств поддержки принятия решений}
+\author{Шешуков Илья Вячеславович}
+\institute[]{
+Санкт-Петербургский государственный университет \\
+Прикладная математика и информатика \\
+Кафедра статистического моделирования \\
+\textbf{Научный руководитель:}  доктор физ.-мат. наук, профессор Н.\,К.~Кривулин
+}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{Задача принятия решений}
+   \begin{itemize}
+     \item Имеется некоторая задача, для решения которой есть $n$ альтернатив (возможных решений).
+     \item Также имеются результаты сравнений каждой пары альтернатив между собой.
+     \item Требуется на основе парных сравнений определить абсолютный приоритет каждой альтернативы.
+   \end{itemize}
+
+\end{frame}
+\begin{frame}{Согласованная матрица парных сравнений}
+  \begin{block}{Матрица парных сравнений}
+    Матрицей парных сравнений называется матрица $\boldsymbol{A} = (a_{ij})$, элемент $a_{ij}$ которой показывает, во сколько раз альтернатива $i$ превосходит  $j$ и верно
+    \[
+      a_{ij} = \nicefrac{1}{a_{ji}}, \quad a_{ij} > 0.
+    \]
+  \end{block}
+  \begin{block}{Согласованная матрица}
+
+\printbibliography[prefixnumbers=FC, heading=none,keyword=fstcat]
+
+    Элементы согласованной матрицы парных сравнений имеют вид [\cite{saaty1984}]
+    $$
+    a_{i j}=x_{i} / x_{j},
+    $$
+    где $x_{i}>0-$ компоненты некоторого вектора $\boldsymbol{x}$, называемого вектором абсолютных приоритетов.
+  \end{block}
+\end{frame}
+\begin{frame}{log-чебышёвская аппроксимация}
+	На практике, матрицы парных сравнений обычно не согласованы, и поэтому возникает задача приближения матрицы парных сравнений согласованной матрицей.
+	
+    Одним из способов решения этой задачи (представленный в статье [\cite{krivulin2019}]) является нахождение вектора $x$, который бы минимизировал следующее выражение
+    \[
+    l_{\infty}\left(\boldsymbol{A}, x x^{-}\right)=\max _{1 \leq i, j \leq n}\left|\log a_{i j}-\log \frac{x_{i}}{x_{j}}\right|, \quad \boldsymbol{x}^{-} = \begin{pmatrix}x_1^{-1}&x_2^{-1} & \dots & x_n^{-1}\end{pmatrix},
+    \]
+    что сводится к нахождению $x$ такого, что
+    \[
+      \min _{\boldsymbol{x}>\mathbf{0}} \max _{1 \leq i, j \leq n} \frac{a_{i j} x_{j}}{x_{i}}.
+    \]
+    Данная задача может быть решена с использованием идемпотентной алгебры и max-алгебры в частности.
+\end{frame}
+\begin{frame}{Постановка задачи}
+  \begin{block}{Max-$\times$-алгебра}
+    $\text{Max-}\times$-алгеброй называется алгебра над множеством $\mathbb{R}_{+}=\{x \in \mathbb{R} \mid x \geq 0\}$ с операциями ${(\oplus, \times)}$, где $\oplus$ --- это максимум, а $\times$ --- стандартное умножение.
+  \end{block}
+
+	\begin{block}{Однокритериальная задача парного сравнения}
+  Соответственно, на языке max-алгебры решение задачи будет выглядеть следующим образом
+  \[
+    \min _{x>\mathbf{0}} \bigoplus_{1 \leq i, j \leq n} x_{i}^{-1} a_{i j} x_{j},
+  \]
+  что можно дополнительно переписать как
+  \[
+    \min _{x>\mathbf{0}} x^{-} A x.
+  \]
+  \end{block}
+\end{frame}
+\begin{frame}{Многокритериальная задача парного сравнения}
+	\begin{itemize}
+		\item 
+		Пусть $n$ альтернатив сравниваются по $m$ критериям.
+		
+		\item
+		Матрица $\boldsymbol{A}_k$ --- матрица попарных сравнений по критерию с номером $k = 1, \dots, n$.
+		
+		\item
+		Матрица $\boldsymbol{C} = (c_{ij})$ --- матрица, показывающая, во сколько раз критерий с номером $i$ важнее критерия с номером $j$. 
+		
+		\item
+		Необходимо построить вектор абсолютных приоритетов по матрицам $\boldsymbol{A}_k$ и $\boldsymbol{C}$, чтобы упорядочить альтернативы в соответствии со множеством критериев.
+	\end{itemize}
+\end{frame}
+\begin{frame}{Многокритериальная задача парного сравнения}
+		Определим функцию
+		$$
+		f_{k}(\boldsymbol{x})=d\left(\boldsymbol{A}_{k}, \boldsymbol{x} \boldsymbol{x}^{-}\right)	
+		$$ и тогда задача сводится к нахождению
+		$$
+		\min _{\boldsymbol{x}>\mathbf{0}}\left(f_{1}(\boldsymbol{x}), \ldots, f_{m}(\boldsymbol{x})\right).
+		$$
+		В терминах тропической математики задача принимает вид
+		$$
+		\min _{\boldsymbol{x}>\mathbf{0}} \boldsymbol{x}^{-} \boldsymbol{A} \boldsymbol{x},  \text { где }  \boldsymbol{A}=\bigoplus_{1 \leq k \leq m} w_{k} \boldsymbol{A}_{k},
+		$$
+		где вектор весов $\boldsymbol{w}=\left(w_{k}\right)$ находится как решение задачи
+		$$
+		\min _{\boldsymbol{w}>0} \boldsymbol{w}^{-} \boldsymbol{C} \boldsymbol{w}.
+		$$
+\end{frame}
+
+
+%\begin{frame}{Используемые объекты}
+%	Некоторые математические объекты, используемые в решении задачи многокритериального сравнения
+%	\begin{block}{Тропический определитель матрицы}
+%		\[ 
+%		\operatorname{Tr} \boldsymbol{A} \coloneqq \mathrm{tr}\boldsymbol{A} \oplus \dots \oplus \mathrm{tr}\boldsymbol{A}^n
+%		\]
+%	\end{block}
+%	\begin{block}{Спектральный радиус}
+%		\[
+%		\lambda \coloneqq \mathrm{tr}\boldsymbol{A} \oplus \dots \oplus \mathrm{tr}^{1/n}\boldsymbol{A}^n
+%		\]
+%	\end{block}
+%	\begin{block}{Оператор Клини}
+%		Если $\mathrm{Tr} \boldsymbol{A} \leq 1$, то оператор Клини определяется следующим образом
+%		\[
+%		\boldsymbol{A}^* \coloneqq \boldsymbol{I} \oplus \boldsymbol{A} \oplus \dots \oplus \boldsymbol{A}^{n-1}
+%		\]
+%	\end{block}
+%\end{frame}
+
+\begin{frame}{Мотивация}
+	\begin{itemize}
+	\item В настоящее время нет общедоступной библиотеки, реализующей данный метод решения многокритериальных задач принятия решений.
+	
+	\item В качестве языка реализации, из-за развитых библиотек линейной алгебры, а также за потенциально большую скорость работы, был выбран \texttt{C++}.
+	
+	\item Также было принято решение использовать символьные вычисления, а не численные расчёты. Это обусловлено тем, что используя данный метод решение задачи можно получить в аналитическом виде, а также для большей точности.
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Мотивация}
+  Выбор используемых технологий обусловлен следующим:
+	\begin{itemize}
+    \item Встраиваемость: например, библиотеку на \texttt{C++} можно использовать в языках \texttt{Python}, \texttt{R}, \texttt{Javascript} (через \texttt{NodeJS}) и многих других.
+    \item Доступность библиотек с открытым исходным кодом позволяет использовать библиотеку на бóльшем числе процессорных архитектур и операционных систем.
+    \item Данное решение более специализировано за счёт чего можно достичь бóльшей производительности и меньшего веса программы, по сравнению с написанием программы для существующих систем компьютерной алгебры.
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\begin{block}{Цель работы}
+		Написать библиотеку и программу на языке \texttt{C++}, символьно решающую задачу принятия решений методом log-чебышёвской аппроксимации в max-алгебре.
+	\end{block}
+	
+	\begin{block}{Результаты}
+		\begin{enumerate}
+		  \item Были релизованы max-+ и max-$\times$-алгебры и добавлена их поддержка в библиотеку линейной алгебры \texttt{Eigen} (версия 3.3.8).
+      \item Все вычисление проводятся символьно (при помощи библиотеки \texttt{GiNaC} версии 1.8.0).
+			\item Был реализован набор функций (тропический определитель, спектральный радиус, оператор Клини), используемых в алгоритме решения задачи.
+			\item Многокритериальная задача принятия решений может быть решена полностью при помощи программы.
+		\end{enumerate}
+	\end{block}
+\end{frame}
+
+\begin{frame}
+Библиотека представляет собой
+		\begin{enumerate}
+			\item Класс \texttt{MaxAlgebra} реализующий операции в max-алгебре.
+			\item Две специализации класса реализующие операции в max-+ и max-$\times$-алгебре.
+			\item Расширение для библиотеки \texttt{Eigen}, позволяющее использовать \texttt{MaxAlgebra} в качестве элементов матрицы.
+			\item Набор функций, участвующих в алгоритме решения задачи: нахождение тропического определителя, спектрального радиуса, оператор Клини и т. д.
+		\end{enumerate}
+
+\end{frame}
+
+\begin{frame}{Дальнейшие планы}
+	\begin{enumerate}
+		\item Реализовать возможность получения полного решения многокритериальной задачи принятия решений в полностью автоматическом режиме.
+		\item Протестировать скорость работы программы относительно существующих решений.
+	\end{enumerate}
+\end{frame}
+
+\defverbatim[colored]\lstI{
+\begin{lstlisting}[language=C++,basicstyle=\scriptsize\ttfamily,keywordstyle=\color{red}]
+MatrixDn A1(3, 3);
+MatrixDn A2(3, 3);
+A1 << ex(sin(1)), 3, ex(1) / 3,
+       ex(1) / 3, 1, 1,
+               3, 1, 1;
+A2 <<   0, ex(1) / 3, 5,
+        3,         1, 7,
+ex(1) / 5, ex(1) / 7, 1;
+\end{lstlisting}
+}
+\defverbatim[colored]\lstII{
+\begin{lstlisting}[language=bash,basicstyle=\scriptsize\ttfamily,keywordstyle=\color{red}]
+A1 + A2 =               A1 * A2 =
+  \sin(1) 3 5             9  3 21
+  3       1 7             3  1  7
+  3       1 1             3  1 15
+\end{lstlisting}
+}
+\defverbatim[colored]\lstIII{
+\begin{lstlisting}[language=bash,basicstyle=\footnotesize\ttfamily,keywordstyle=\color{red}]
+  MatrixDn C(4, 4);
+  C <<  8, 3, 10, 6,
+        7, 2,  1, 4,
+       10, 8,  2, 2,
+        4, 7,  6, 1;
+  spectral_radius(C);
+\end{lstlisting}
+}
+\defverbatim[colored]\lstIV{
+\begin{lstlisting}[language=bash,basicstyle=\tiny\ttfamily,keywordstyle=\color{red}]
+m^1=          m^2=                m^3=                       m^4=
+8  3 10  6   100  80  80  48     800  640 1000  600         10000  8000  8000  4800
+7  2  1  4    56  28  70  42     700  560  560  336          5600  4480  7000  4200
+10 8  2  2    80  30 100  60    1000  800  800  480          8000  6400 10000  6000
+4  7  6  1    60  48  40  28     480  320  600  360          6000  4800  4800  2880
+              tr(m^2)^(1/2) = 10  tr(m^3)^(1/3) = 800^(1/3)  tr(m^4)^(1/4) = 10
+
+Spectral radius of C = 10
+\end{lstlisting}
+}
+\defverbatim[colored]\lstV{
+	\begin{lstlisting}[language=bash,basicstyle=\scriptsize\ttfamily,keywordstyle=\color{red}]
+auto lambda = spectral_radius(C);
+	\end{lstlisting}
+}
+\defverbatim[colored]\lstVI{
+	\begin{lstlisting}[language=bash,basicstyle=\scriptsize\ttfamily,keywordstyle=\color{red}]
+MatrixDn Calmoststar = 1 / lambda * C;
+auto w = cleany(Calmoststar);
+	\end{lstlisting}
+}
+\defverbatim[colored]\lstVII{
+	\begin{lstlisting}[language=c++,basicstyle=\scriptsize\ttfamily]
+auto delta = (MatrixDn::Ones(1, 6) * 
+                                 w * 
+      MatrixDn::Ones(6, 1)).value();
+	\end{lstlisting}
+}
+\defverbatim[colored]\lstVIII{
+	\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+MatrixDn W1m = (1 / delta * MatrixDn::Ones(6, 6)) + Calmoststar;
+auto w1 = cleany(W1m);
+	\end{lstlisting}
+}
+\defverbatim[colored]\lstIX{
+	\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+auto worst_vector =
+(w.col(0) / w.col(0).maxCoeff()) + (w.col(1) / w.col(1).maxCoeff());
+	\end{lstlisting}
+}
+\defverbatim[colored]\lstX{
+	\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+auto B1 =
+(worst_vector(0) * A1 + worst_vector(1) * A2 + worst_vector(2) * A3 +
+worst_vector(3) * A4 + worst_vector(4) * A5 + worst_vector(5) * A6)
+.eval();
+
+auto nu = spectral_radius(B1);
+
+MatrixDn almost_x1 = 1 / nu * B1;
+auto x1 = cleany(almost_x1);
+	\end{lstlisting}
+}
+\defverbatim[colored]\lstXI{
+	\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+auto delta1 = (MatrixDn::Ones(1, 3) * x1 * MatrixDn::Ones(3, 1)).value();
+MatrixDn almost_x1new = (delta1 * MatrixDn::Ones(3, 3)) + almost_x1;
+auto x1new = cleany(almost_x1new);
+	\end{lstlisting}
+}
+\defverbatim[colored]\lstXII{
+	\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+MatrixDn P(6, 2);
+P << w.col(0), w.col(1);
+	\end{lstlisting}
+}
+\defverbatim[colored]\lstXIII{
+	\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+auto [k, l] = best_diff_vector_coefficients(P);
+	\end{lstlisting}
+}
+\defverbatim[colored]\lstXIV{
+	\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+MatrixDn Plk_inverse = MatrixDn::Zero(P.rows(), P.cols());
+Plk_inverse(l, k) = 1 / P(l, k);
+		
+auto w2 = P * (MatrixDn::Identity(P.cols(), P.cols()) +
+Plk_inverse.transpose() * P);
+	\end{lstlisting}
+}
+
+\defverbatim[colored]\lstVr{
+\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+lambda = (360/7)^(1/5)
+\end{lstlisting}
+}
+\defverbatim[colored]\lstVIr{
+\begin{lstlisting}[language=c++,basicstyle=\scriptsize\ttfamily]
+w = 
+[1, 1/20*(360/7)^(2/5), 1/60*(360/7)^(3/5), 1/4*(360/7)^(1/5), 7/60*(360/7)^(4/5), 
+1/20*(360/7)^(2/5)]
+[7/30*(360/7)^(3/5), 1, 1/5*(360/7)^(1/5), 7/120*(360/7)^(4/5), 7/5*(360/7)^(2/5), 
+3/5]
+[7/6*(360/7)^(2/5), 7/120*(360/7)^(4/5), 1, 7/24*(360/7)^(3/5), 7*(360/7)^(1/5), 
+7/120*(360/7)^(4/5)]
+[7/90*(360/7)^(4/5), 1/5*(360/7)^(1/5), 1/15*(360/7)^(2/5), 1, 7/15*(360/7)^(3/5), 
+1/5*(360/7)^(1/5)]
+[1/6*(360/7)^(1/5), 1/120*(360/7)^(3/5), 1/360*(360/7)^(4/5), 1/24*(360/7)^(2/5), 1, 
+1/120*(360/7)^(3/5)]
+[7/18*(360/7)^(3/5), 1, 1/3*(360/7)^(1/5), 7/72*(360/7)^(4/5), 7/3*(360/7)^(2/5), 
+1]
+\end{lstlisting}
+}
+\defverbatim[colored]\lstVIIr{
+\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+delta = 7*(360/7)^(1/5)
+delta^-1 = 1/360*(360/7)^(4/5)
+\end{lstlisting}
+}
+\defverbatim[colored]\lstVIIIr{
+	\begin{lstlisting}[language=c++,basicstyle=\scriptsize\ttfamily]
+w1 = 
+[1, 1/20*(360/7)^(2/5), 1/60*(360/7)^(3/5), 1/4*(360/7)^(1/5), 7/60*(360/7)^(4/5), 
+1/20*(360/7)^(2/5)]
+[7/30*(360/7)^(3/5), 1, 1/5*(360/7)^(1/5), 7/120*(360/7)^(4/5), 7/5*(360/7)^(2/5), 
+3/5]
+[7/6*(360/7)^(2/5), 7/120*(360/7)^(4/5), 1, 7/24*(360/7)^(3/5), 7*(360/7)^(1/5), 
+7/120*(360/7)^(4/5)]
+[7/90*(360/7)^(4/5), 1/5*(360/7)^(1/5), 1/15*(360/7)^(2/5), 1, 7/15*(360/7)^(3/5), 
+1/5*(360/7)^(1/5)]
+[1/6*(360/7)^(1/5), 1/120*(360/7)^(3/5), 1/360*(360/7)^(4/5), 1/24*(360/7)^(2/5), 1, 
+1/120*(360/7)^(3/5)]
+[7/18*(360/7)^(3/5), 1, 1/3*(360/7)^(1/5), 7/72*(360/7)^(4/5), 7/3*(360/7)^(2/5), 
+1]
+	
+worst_vector = 
+[1/60*(360/7)^(3/5)]
+[1/3*(360/7)^(1/5)]
+[1]
+[1/15*(360/7)^(2/5)]
+[1/360*(360/7)^(4/5)]
+[1/3*(360/7)^(1/5)]
+	
+B1 = 
+[1, 7/3*(360/7)^(1/5), 3*(360/7)^(1/5)]
+[7, 1, 7/3*(360/7)^(1/5)]
+[9, 7, 1]
+nu = (360/7)^(1/10)*sqrt(27)
+x1 = 
+[1, 7/9, 1/9*(360/7)^(1/10)*sqrt(27)]
+[49/9720*(360/7)^(9/10)*sqrt(27), 1, 7/9]
+[7/1080*(360/7)^(9/10)*sqrt(27), 49/9720*(360/7)^(9/10)*sqrt(27), 1]
+x1new = 
+[7/120*(360/7)^(4/5), 7/120*(360/7)^(4/5), 7/120*(360/7)^(4/5)]
+[7/120*(360/7)^(4/5), 7/120*(360/7)^(4/5), 7/120*(360/7)^(4/5)]
+[7/120*(360/7)^(4/5), 7/120*(360/7)^(4/5), 7/120*(360/7)^(4/5)]
+\end{lstlisting}
+}
+\defverbatim[colored]\lstIXr{
+	\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+P = [1, 1/20*(360/7)^(2/5)]
+[7/30*(360/7)^(3/5), 1]
+[7/6*(360/7)^(2/5), 7/120*(360/7)^(4/5)]
+[7/90*(360/7)^(4/5), 1/5*(360/7)^(1/5)]
+[1/6*(360/7)^(1/5), 1/120*(360/7)^(3/5)]
+[7/18*(360/7)^(3/5), 1]
+\end{lstlisting}
+}
+\defverbatim[colored]\lstXr{
+	\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+k = 0, l = 4
+\end{lstlisting}
+}
+\defverbatim[colored]\lstXIr{
+	\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+w2 = 
+[1, 1/20*(360/7)^(2/5)]
+[7/30*(360/7)^(3/5), 1]
+[7/6*(360/7)^(2/5), 7/120*(360/7)^(4/5)]
+[7/90*(360/7)^(4/5), 1/5*(360/7)^(1/5)]
+[1/6*(360/7)^(1/5), 1/120*(360/7)^(3/5)]
+[7/18*(360/7)^(3/5), 1]
+\end{lstlisting}
+}
+\defverbatim[colored]\lstXIIr{
+
+}
+\defverbatim[colored]\lstXIIIr{
+
+}
+%
+%\begin{frame}{Пример. Арифметика}
+%\begin{block}{Код}
+%\lstI
+%\end{block}
+%\begin{block}{Результат}
+%\lstII
+%\end{block}
+%\end{frame}
+%\begin{frame}{Пример. Спектральный радиус}
+%\begin{block}{Код}
+%\lstIII
+%\end{block}
+%\begin{block}{Результат}
+%\lstIV
+%\end{block}
+%\end{frame}
+%\begin{frame}{Пример. Элементы решения задачи}
+%Дальше будут представлены некоторые части решения реальной задачи принятия решений.\\
+%\textbf{Условие}
+%$$
+%\footnotesize\begin{array}{l}
+%	C=\left(\begin{array}{cccccc}
+%		1 & 1 / 4 & 1 / 5 & 1 / 4 & 6 & 1 / 6 \\
+%		4 & 1 & 1 / 3 & 3 & 6 & 1 / 2 \\
+%		5 & 3 & 1 & 4 & 7 & 3 \\
+%		4 & 1 / 3 & 1 / 4 & 1 & 5 & 1 / 5 \\
+%		1 / 6 & 1 / 6 & 1 / 7 & 1 / 5 & 1 & 1 / 7 \\
+%		6 & 2 & 1 / 3 & 5 & 7 & 1
+%	\end{array}\right) \\
+%	A_{1}=\left(\begin{array}{ccc}
+%		1 & 5 & 8 \\
+%		1 / 5 & 1 & 5 \\
+%		1 / 8 & 1 / 5 & 1
+%	\end{array}\right), \quad A_{2}=\left(\begin{array}{ccc}
+%		1 & 7 & 9 \\
+%		1 / 7 & 1 & 7 \\
+%		1 / 9 & 1 / 7 & 1
+%	\end{array}\right), \quad A_{3}=\left(\begin{array}{ccc}
+%		1 & 1 / 7 & 1 / 9 \\
+%		7 & 1 & 1 / 7 \\
+%		9 & 7 & 1
+%	\end{array}\right), \\
+%	A_{4}=\left(\begin{array}{ccc}
+%		1 & 3 & 5 \\
+%		1 / 3 & 1 & 4 \\
+%		1 / 5 & 1 / 4 & 1
+%	\end{array}\right), \quad A_{5}=\left(\begin{array}{ccc}
+%		1 & 3 & 5 \\
+%		1 / 3 & 1 & 4 \\
+%		1 / 5 & 1 / 4 & 1
+%	\end{array}\right), \quad A_{6}=\left(\begin{array}{ccc}
+%		1 & 7 & 9 \\
+%		1 / 7 & 1 & 7 \\
+%		1 / 9 & 1 / 7 & 1
+%	\end{array}\right)
+%\end{array}
+%$$
+%\end{frame}
+%\begin{frame}{Вычисление спектрального радиуса}
+%
+%	\begin{block}{Код}
+%	\lstV
+%	\end{block}
+%\begin{block}{Результат}
+%	\lstVr
+%\end{block}
+%\end{frame}
+%\begin{frame}{Вычисление $(\lambda^{-1}C)^*$}
+%\begin{block}{Код}
+%\lstVI
+%\end{block}
+%\end{frame}
+%\begin{frame}{Вычисление $\delta$}
+%	\begin{block}{Код}
+%		\lstVII
+%	\end{block}
+%	\begin{block}{Результат}
+%		\lstVIIr
+%	\end{block}
+%\end{frame}
+%
+
+
+%\begin{frame}{Литература}
+%	\printbibliography
+%\end{frame}
+
+
+\end{document}
