@@ -330,70 +330,68 @@ $$
 \textbf{Общий ответ}: (\Romannum{2}) \(\succ\) (\Romannum{1}) \(\succ\) (\Romannum{3}).
 
 \subsection{Использование библиотеки для вычислений}
-Приведём пример использования библиотеки для получения вышеприведённых вычислений на компьютере (без нахождения дифференцирующих векторов, другой пример с нахождением дифференцирующих векторов может быть найден в Приложении \ref{appendix:full}).
+Приведём пример вывода программы для получения вышеприведённых вычислений на компьютере (более сложный и подробный пример может быть найден в Приложении \ref{appendix:full}).
 
-Задание условий:
 \begin{verbatim}
-MatrixDn C(2, 2);
-C << 1, ma(1,3), 
-     3, 1;
-		
-MatrixDn A1(3, 3);
-A1 <<  1, 3, ma(1,3), 
-ma(1, 3), 1, 1, 
-       3, 1, 1;
-MatrixDn A2(3, 3);
-A2 <<  1,      1/3, 5, 
-       3,        1, 7, 
-ma(1, 5), ma(1, 7), 1;
+Computing spectral radius: lambda = 1
+
+Computing (1/lambda * C)^*
+(1/lambda * C)^* =
+[1, 1/3]
+ [3, 1]
+
+Computing delta:
+delta = 3, delta^-1 = 1/3
+
+Computing the worst differentiating weight vector
+Linearly independent w1 =
+[1/3]
+ [1]
+
+Worst differentiating weight vector =
+[1/3]
+ [1]
+
+D1 = [1, 1, 5]
+ [3, 1, 7]
+ [1, 1/3, 1]
+nu_1 = sqrt(5)
+
+Worst differentiating vector of alternatives
+x1 =
+[sqrt(5)]
+ [7/5*sqrt(5)]
+ [1]
+
+
+Computing the best differenting weight vector
+P =
+[1/3]
+ [1]
+
+Computing w_2
+
+Linearly independent w2 =
+[1/3]
+ [1]
+
+Computing the best differentiating vector of alternatives
+D2 = [1, 1, 5]
+ [3, 1, 7]
+ [1, 1/3, 1]
+nu_2 = sqrt(5)
+
+Best differentiang vector of alternatives
+x2 = [sqrt(5)]
+ [5]
+ [1]
 \end{verbatim}
 
-Вычисление спектрального радиуса и матрицы Клини:
-\begin{verbatim}
-auto lambda = spectral_radius(C);
+Получили следующий порядок альтернатив:
+для наихудшего дифференцирующего вектора (\Romannum{2}) \(\succ\) (\Romannum{1}) \(\succ\) (\Romannum{3}),
+для наилучшего --- (\Romannum{2}) \(\succ\) (\Romannum{1}) \(\succ\) (\Romannum{3}).
 
-MatrixDn C_ = 1 / lambda * C;
-auto w = cleany(C_);
-\end{verbatim}
-Вывод:
-\begin{verbatim}
-Вычисление спектрального радиуса
-lambda = 1
-
-Вычисление (\lambda^{-1}C)^*
-w = [1, 1/3]
-	[3, 1]
-\end{verbatim}
-
-Вычисление матрицы $\boldsymbol{B}$ и её спектрального радиуса:
-\begin{verbatim}
-auto B = (A1 + 3 * A2).eval();
-auto mu = spectral_radius(B);
-\end{verbatim}
-Вывод:
-\begin{verbatim}
-B = [3, 3, 15]
-	[9, 3, 21]
-	[3, 1, 3]
-
-Вычисление спектрального радиуса B
-mu = sqrt(45)
-\end{verbatim}
-
-Вычисление матрицы $\boldsymbol{S}$ и формулы для получения вектора рейтингов альтернатив:
-\begin{verbatim}
-auto S_ = (1/mu*B).eval();
-auto S = cleany(S_);
-\end{verbatim}
-Вывод:
-\begin{verbatim}
-S = [1, 1/15*sqrt(45), 1/3*sqrt(45)]
-	[7/5, 1, 7/15*sqrt(45)]
-	[1/15*sqrt(45), 1/5, 1]
-
-\end{verbatim}
-
-Вычисления совпадают с теми, что были получены ручными вычислениями.
+Результат совпадает с результатом, полученным ручными вычислениями.
 
 \subsection{Внутреннее устройство библиотеки}
 Библиотека представляет собой
