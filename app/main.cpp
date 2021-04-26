@@ -184,7 +184,6 @@ int main(int argc, char* argv[]) {
       MaxTimes(1, 6), MaxTimes(1, 6), MaxTimes(1, 7), MaxTimes(1, 5), 1,
       MaxTimes(1, 7), 6, 2, MaxTimes(1, 3), 5, 7, 1;
 
-  const auto num_crit_mat = C.rows();
 
   std::vector<MatrixDn>As;
   MatrixDn A1(3, 3);
@@ -207,7 +206,21 @@ int main(int argc, char* argv[]) {
   As.push_back(A5);
   As.push_back(A6);
 
+//  Маленькая пример из текста диплома
+//  MatrixDn C(2,2);
+//  C << 1, ma(1,3), 3, 1;
+
+//  MatrixDn A1(3,3);
+//  A1 << 1, 3, ma(1, 3),
+//        ma(1,3), 1, 1,
+//          3, 1, 1;
+//  MatrixDn A2(3,3);
+//  A2 << 1, 1/3, 5,
+//        3, 1, 7,
+//        ma(1,5), ma(1,7), 1;
+
   const auto num_comp_mat = A1.rows();
+  const auto num_crit_mat = C.rows();
 
   /*
    * Вычисление спектрального радиуса
@@ -237,7 +250,7 @@ int main(int argc, char* argv[]) {
    * Вычисление наихудшего дифференцирующего вектора весов
    */
   std::cout << "Computing the worst differentiating weight vector" << std::endl;
-  MatrixDn W1m = (1 / delta * MatrixDn::Ones(num_crit_mat, num_crit_mat)) + Calmoststar;
+  MatrixDn W1m = ((1 / delta) * MatrixDn::Ones(num_crit_mat, num_crit_mat)) + Calmoststar;
   auto w1 = cleany(W1m);
   auto liw1 = linearly_independent_system(w1);
   std::cout << "Linearly independent w1 = \n" << liw1.format(MatlabFmt) << std::endl << std::endl;

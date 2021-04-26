@@ -79,7 +79,7 @@ MaxTimes operator*(const MaxTimes& lhs, const MaxTimes& rhs) {
     return MaxTimes(lhs.value * rhs.value);
 }
 MaxTimes operator/(const MaxTimes& lhs, const MaxTimes& rhs) {
-    return MaxTimes(lhs.value / rhs.value);
+    return (rhs.value == 0) ? 0 : MaxTimes(lhs.value / rhs.value);
 }
 
 
