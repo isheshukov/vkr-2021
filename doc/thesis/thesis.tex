@@ -428,7 +428,7 @@ class MaxAlgebra {
 \begin{enumerate}
  \setcounter{enumi}{1}
 	\item Две специализации класса реализующие операции в max-+ и max-$\times$-алгебре.
-\begin{lstlisting}[language=C++,basicstyle=\footnitesize\ttfamily,keywordstyle=\color{blue}]
+\begin{lstlisting}[language=C++,basicstyle=\footnotesize\ttfamily,keywordstyle=\color{blue}]
 
 using MaxTimes = MaxAlgebra<std::multiplies<void>>;
 using MaxPlus = MaxAlgebra<std::plus<void>>;
@@ -651,12 +651,18 @@ auto x1 = cleany(almost_x1);
 auto LI_x1 = linearly_independent_system(x1);
 \end{lstlisting}
 
-Вычисляем вектор рейтингов альтернатив матрицы $\mathbf{D}_{!}$.
-Если матрица в переменной \textbf{LI_x1} состоит из одного столбца, то этот столбец является решением. В противном случае неединственности решения:
+Вычисляем вектор рейтингов альтернатив матрицы $\mathbf{D}_{1}$.
+Если матрица в переменной \texttt{LI\_x1} состоит из одного столбца, то этот столбец является решением. В противном случае неединственности решения:
 
 \begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
-auto delta_1 = (MatrixDn::Ones(1, x1.rows()) * x1 * MatrixDn::Ones(x1.cols(), 1)).value();
-MatrixDn almost_x1new = ((1/delta_1) * MatrixDn::Ones(x1.cols(), x1.rows())) + almost_x1;
+auto delta_1 = (MatrixDn::Ones(1, x1.rows()) *
+  x1 *
+  MatrixDn::Ones(x1.cols(), 1)).value();
+
+MatrixDn almost_x1new = ((1/delta_1) *
+  MatrixDn::Ones(x1.cols(), x1.rows())) +
+  almost_x1;
+
 auto x1new = cleany(almost_x1new);
 
 auto LI_x1new = linearly_independent_system(x1new);
@@ -686,34 +692,29 @@ for (auto& [k, l]: bdfc){
     W2.rightCols(t.cols()) = t;
 }
 auto LI_W2 = linearly_independent_system(W2);
-\end{lstlisting}
-
-Вычислияем вектор рейтингов альтернатив для $\mathbf{D}_2$.
-\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
 auto nu_2 = spectral_radius(D2);
 MatrixDn almost_x2 = (1 / nu_2) * D2;
 
 auto x2 = cleany(almost_x2);
 auto LI_x2 = linearly_independent_system(x2);
+\end{lstlisting}
 
-if (LI_x2.cols() == 1){
-  // Случай единственности
-    std::cout << "x2 = " << LI_x2.format(MatlabFmt) << std::endl;
-} else {
-  // Случай неединственности
-    auto S = LI_x2;
-    auto bdfc = best_diff_vector_coefficients(S);
-    MatrixDn WS;
-    for (auto& [k, l]: bdfc){
-        MatrixDn Slk_inverse = MatrixDn::Zero(S.rows(), S.cols());
-        Slk_inverse(l, k) = 1 / S(l, k);
-        auto t = S * (MatrixDn::Identity(S.cols(), S.cols()) +
-                       Slk_inverse.transpose() * S);
-        WS.conservativeResize(t.rows(), WS.cols() + t.cols());
-        WS.rightCols(t.cols()) = t;
-    }
-    auto LI_WS = linearly_independent_system(WS);
-  }
+Вычислияем вектор рейтингов альтернатив для $\mathbf{D}_2$.
+Если матрица в переменной \texttt{LI\_x2} состоит из одного столбца, то этот столбец является решением. В противном случае неединственности решения:
+
+\begin{lstlisting}[language=c++,basicstyle=\footnotesize\ttfamily]
+auto S = LI_x2;
+auto bdfc = best_diff_vector_coefficients(S);
+MatrixDn WS;
+for (auto& [k, l]: bdfc){
+    MatrixDn Slk_inverse = MatrixDn::Zero(S.rows(), S.cols());
+    Slk_inverse(l, k) = 1 / S(l, k);
+    auto t = S * (MatrixDn::Identity(S.cols(), S.cols()) +
+                   Slk_inverse.transpose() * S);
+    WS.conservativeResize(t.rows(), WS.cols() + t.cols());
+    WS.rightCols(t.cols()) = t;
+}
+auto LI_WS = linearly_independent_system(WS);
 \end{lstlisting}
 
 \subsubsection{Вывод программы}
