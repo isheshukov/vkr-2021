@@ -177,6 +177,8 @@ int main(int argc, char* argv[]) {
    *    Единичная матрица размерности N
    *        MatrixDn::Identity(N, N);
    */
+
+  // Попросить данные
   MatrixDn C(6, 6);
   C << 1, MaxTimes(1, 4), MaxTimes(1, 5), MaxTimes(1, 4), 6,
       MaxTimes(1, 6), 4, 1, MaxTimes(1, 3), 3, 6, MaxTimes(1, 2), 5, 3, 1,
@@ -218,6 +220,9 @@ int main(int argc, char* argv[]) {
 //  A2 << 1, 1/3, 5,
 //        3, 1, 7,
 //        ma(1,5), ma(1,7), 1;
+
+//  As.push_back(A1);
+//  As.push_back(A2);
 
   const auto num_comp_mat = A1.rows();
   const auto num_crit_mat = C.rows();
@@ -264,10 +269,8 @@ int main(int argc, char* argv[]) {
    * и сложим.
    */
 
-  MatrixDn worst_vector = MatrixDn::Zero(liw1.rows(), 1);
-  for (int i = 0; i < liw1.cols(); ++i){
-      worst_vector += liw1.col(i) / liw1.col(i).maxCoeff();
-  }
+  liw1 = liw1 / liw1.maxCoeff();
+  MatrixDn worst_vector = liw1.rowwise().sum();
   std::cout << "Worst differentiating weight vector = \n" << worst_vector.format(MatlabFmt) << std::endl
             << std::endl;
 
@@ -307,21 +310,13 @@ int main(int argc, char* argv[]) {
 
       auto LI_x1new = linearly_independent_system(x1new);
 
-      if (LI_x1new.cols() == 1) {
-        std::cout << "x1 = \n" << LI_x1new.format(MatlabFmt) << std::endl;
-      } else {
       /*
-       *  Если всё равно получается не единственный вектор, то найдём
-       *  "самый плохой" вектор рейтингов альтернатив.
+       *  Далее найдём максимальный элемент матрицы, нормируем на него,
+       *  и сложим все векторы. Это и будет наихудщим вектором.
        */
-
-          MatrixDn worst_x1 = MatrixDn::Zero(LI_x1new.rows(), 1);
-          for (int i = 0; i < LI_x1new.cols(); ++i){
-              worst_x1 += LI_x1new.col(i) / LI_x1new.col(i).maxCoeff();
-          }
-          std::cout << "x1 = \n" << worst_x1.format(MatlabFmt) << std::endl;
-
-      }
+      LI_x1new = LI_x1new / LI_x1new.maxCoeff();
+      MatrixDn worst_x1 = LI_x1new.rowwise().sum();
+      std::cout << "x1 = \n" << worst_x1.format(MatlabFmt) << std::endl;
 
   }
 
@@ -357,12 +352,13 @@ int main(int argc, char* argv[]) {
   auto LI_W2 = linearly_independent_system(W2);
   std::cout << "\nLinearly independent w2 = \n" << LI_W2.format(MatlabFmt) << std::endl;
 
-  /*
-   *  Тут не совсем ясно что делать, если получается несколько векторов.
-   *  Пока возьму первый
-   */
+  auto LI_W2_normed = LI_W2 / LI_W2.maxCoeff();
 
-  auto w2 = LI_W2.col(0);
+  int LI_W2_normed_sums_min_idx;
+  auto LI_W2_normed_sums = LI_W2_normed.colwise().sum().minCoeff(&LI_W2_normed_sums_min_idx);
+
+  auto w2 = LI_W2_normed.col(LI_W2_normed_sums_min_idx) / LI_W2_normed.col(LI_W2_normed_sums_min_idx).maxCoeff();
+  std::cout << "w2 = " << w2.format(MatlabFmt) << std::endl;
 
   MatrixDn D2 = MatrixDn::Zero(num_comp_mat, num_comp_mat);
   for (int i = 0; i < w2.rows(); ++i){
@@ -383,12 +379,17 @@ int main(int argc, char* argv[]) {
   auto x2 = cleany(almost_x2);
   auto LI_x2 = linearly_independent_system(x2);
 
-  std::cout << "\nBest differentiang vector of alternatives"  << std::endl;
+  std::cout << "\nBest differentiating vector of alternatives"  << std::endl;
   if (LI_x2.cols() == 1){
   // Случай единственности
       std::cout << "x2 = " << LI_x2.format(MatlabFmt) << std::endl;
   } else {
   // Случай неединственности
+  //
+  //  Результирующие столбцы матрицы нормируем по максимуму
+  //  Из них выбираем тот, у которого сумма элементов минимальна
+  //  То же для альтернатив
+  //
       auto S = LI_x2;
       auto bdfc = best_diff_vector_coefficients(S);
       MatrixDn WS;
@@ -401,12 +402,14 @@ int main(int argc, char* argv[]) {
           WS.rightCols(t.cols()) = t;
       }
       auto LI_WS = linearly_independent_system(WS);
-      std::cout << "x2 = " << LI_WS.format(MatlabFmt) << std::endl;
-  }
+      auto LI_WS_normed = LI_WS / LI_WS.maxCoeff();
 
-  /*
-   *  Тут не совсем ясно что делать, если получается несколько векторов.
-   */
+      int LI_WS_normed_sums_min_idx;
+      auto LI_WS_normed_sums = LI_WS_normed.colwise().sum().minCoeff(&LI_WS_normed_sums_min_idx);
+
+      auto x2_normed = LI_WS_normed.col(LI_WS_normed_sums_min_idx) / LI_WS_normed.col(LI_WS_normed_sums_min_idx).maxCoeff();
+      std::cout << "x2 = " << x2_normed.format(MatlabFmt) << std::endl;
+  }
 
   return 0;
 }
