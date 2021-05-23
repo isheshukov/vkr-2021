@@ -18,7 +18,16 @@
 \lstset{extendedchars=\true}
 \usepackage{xcolor}
 \usepackage{amsmath, amsfonts, amsthm}
-\usepackage{graphics}
+\usepackage{bbm}
+\usepackage{graphicx}
+\usepackage[pdf]{graphviz}
+
+\usepackage{dot2texi}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows}
+\makeatletter
+\@ifundefined{verbatim@out}{\newwrite\verbatim@out}{}
+\makeatother
 
 \usepackage{csquotes}
 \usepackage{nicefrac}
@@ -31,6 +40,7 @@
   natbib=true,
   url=true,
 ]{biblatex}
+\PassOptionsToPackage{hyphens}{url}
 \usepackage{listings}
 \usepackage{bm}
 
@@ -42,10 +52,9 @@
 \addbibresource{./ref.bib}
 \let\vec=\mathbf
 \setcounter{tocdepth}{2}
-\author{Илья Шешуков}
+
 \date{\number\year}
-\title{Отчёт по научно-исследовательской работе}
-%\title{Бакалаврская работа}
+
 \hypersetup{
  pdfauthor={Илья Шешуков},
  pdftitle={Курсовая работа},
@@ -55,6 +64,8 @@
  pdflang={Russian}}
 
 \newtheorem{utv}{Утверждение}
+\newtheorem{cor}{Следствие}
+\newtheorem*{remark}{Замечание}
 
 % Имена без курсива
 \renewcommand*{\mkgostheading}[1]{#1}
@@ -90,25 +101,9 @@
 }
 
 \theoremstyle{definition}
-\newtheorem{definition}{Определение}[section]
+\newtheorem{definition}{Определение}[]
 
 \DeclareMathOperator{\tr}{tr}
 \DeclareMathOperator{\Tr}{Tr}
 
 
-\institution{
-    Санкт-Петербургский государственный университет \\
-    Прикладная математика и информатика \\
-    Вычислительная стохастика и статистические модели
-}
-
-\topic{\normalfont\scshape%
-Разработка вычислительных алгоритмов и программных средств поддержки принятия решений
-}
-
-% Научный руководитель
-\sa       {Н.\,К.~Кривулин}
-\sastatus {доктор физ.-мат. наук, профессор}
-
-% Город и год
-\city{Санкт-Петербург}

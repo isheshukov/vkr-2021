@@ -22,14 +22,10 @@ pkgs.clangStdenv.mkDerivation {
                     mesa_glu
                     qt514.full
                     qtcreator
+		    dot2tex
 		    texstudio
 		    python3Packages.pygments
-                    (texlive.combine { inherit (texlive) scheme-medium 
-		    disser 
-		    collection-langcyrillic
-		    collection-latexextra
-		    collection-bibtexextra
-		    babel-russian; })
+		    texlive.combined.scheme-full
                   ];
 
 

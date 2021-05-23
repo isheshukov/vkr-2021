@@ -1,283 +1,393 @@
 % !TeX spellcheck = ru_RU
 \documentclass[specialist,
-	substylefile = spbu_report.rtx,
+	substylefile = spbu.rtx,
 	subf,href,colorlinks=true, 12pt]{disser}
 
 \input{preamble.tex}
 
 \begin{document}
 \pagenumbering{arabic}
+
+\input{title.ru.tex}
 \maketitle
-\newpage
+\input{title.en.tex}
+\maketitle[en]
 \tableofcontents
 \intro
 
-Задача принятия решения на основе парных сравнений состоит в том, чтобы по результатам попарных сравнений $n$ альтернатив определить абсолютный приоритет каждой альтернативы. Подобные задачи возникают во множестве областей: социологии, маркетинге, менеджменте.
+Задача принятия решения на основе парных сравнений состоит в том, чтобы по результатам попарных сравнений $n$ альтернатив определить абсолютный приоритет каждой из них. Подобные задачи возникают во множестве областей человеческой деятельности, где необходимо принимать решения на основе нескольких факторов.
 
 Одним из методов решения подобных задач является метод log-чебышёвской аппроксимации. Преимущество этого метода в том, что решения получают в аналитическом виде, а не в численном. Однако, пока не существует общедоступных программных средств, которые бы решали данную задачу на компьютере.
 
-Поэтому в работе будет представлено программное средство, позволяющее решать задачи парных сравнений методом log-чебышёвской аппроксимации.
+В данной работе будет рассмотрен подход \cite{krivulin2019} в решении задачи оценки альтернатив на основе log-чебышёвской аппроксимации и представлено программное средство, решающее задачу многокритериальных парных сравнений данным методом.
 
-Работа была начата в этом году, в ходе работы были изучены материалы на тему тро­пической оптимизации и было начато написание библиотеки для решения задачи принятия решений. Был приведён план
-и пример решения многокритериальной задачи с использованием разрабатываемого программного средства.
+Данная работа организована следующим образом: в Главе 1 и 2 рассматривается постановка задачи, в Главе 3 представлено её решение и разработанное программное средство.
 
-\chapter{Задача парных сравнений}
-\begin{definition}{Матрицей парных сравнений}
-	называется матрица $\boldsymbol{A} = (a_{ij})$, элемент $a_{ij}$ которой показывает, во сколько раз альтернатива $i$ превосходит альтернативу $j$ и для которой верны условия
-	\[
-		a_{ij} = \nicefrac{1}{a_{ji}}, \quad a_{ij} > 0.
-	\]
+\chapter{Задача оценки альтернатив на основе парных сравнений}
+\section{Общая информация}
+Задача принятия решений в самой общей формулировке состоит в следующем: из множества вариантов при заданных ограничениях нужно выбрать один или несколько вариантов, обеспечивающих решение некоторой задачи. 
+Подобные задачи могут возникнуть в любой области, где человеку необходимо принять оптимальное решение на основе множества факторов: маркетинге, психологии, менеджменте и других.
+
+Конкретной задачей принятия решений является задача парных сравнений. Её можно сформулировать так: имея $n$ альтернатив и результаты сравнения каждой пары (альтернатива $i$ \enquote{лучше} альтернативы $j$ в $m$ раз), необходимо упорядочить альтернативы. Также существует обобщение этой задачи на случай, когда альтернативы сравниваются по нескольким критериям, называемое \textit{многокритериальной задачей парных сравнений}.
+
+Обычно такие сравнения проводят люди (эксперты, респонденты опросов), поэтому результаты парных сравнений в большинстве случаев нельзя наивно упорядочить. Рассмотрим две ситуации на Рис. \ref{pic:gr}.
+\begin{figure*}[h]
+	\centering
+	\begin{subfigure}[t]{0.5\textwidth}
+	  \centering
+
+  		\begin{dot2tex}[tikz,options=-t math] 
+  	digraph G {
+  		T1[label="T_1"];
+  		T2[label="T_2"];
+  		T3[label="T_3"];
+  		
+  		T1 -> T2;
+  		T3 -> T2;
+  		T3 -> T1;
+  	}
+  \end{dot2tex}
+	   \caption{Ситуация 1}
+	\end{subfigure}%
+	~ 
+	\begin{subfigure}[t]{0.5\textwidth}
+		\centering
+      \begin{dot2tex}[tikz,options=-t math]
+	digraph G {
+		T1[label="T_1"];
+		T2[label="T_2"];
+		T3[label="T_3"];
+		
+		T1 -> T2;
+		T2 -> T3;
+		T3 -> T1;
+	}
+\end{dot2tex}
+		\caption{Ситуация 2}
+	\end{subfigure}
+	\caption{Примеры возможных результатов парных сравнений. $T_i \rightarrow T_j$ означает	\enquote{$T_i$ лучше $T_j$} \label{pic:gr}}
+\end{figure*}
+В первой ситуации, упорядочить альтернативы по возрастанию приоритета просто: $T_2$, $T_1$, $T_3$. Во второй же ситуации при помощи такого наивного метода это не представляется возможным из-за цикла.
+
+Существует множество методов решения данной задачи. Например, известны метод анализа иерархий Саати \cite{saaty_analytic_1980} и метод геометрических средних. Недостатком обоих методов является то, что решение получают численно. Кроме того, метод Саати является эвристическим.
+
+В данной работе будет рассмотрен подход \cite{krivulin2019} в решении задачи оценки альтернатив на основе log-чебышёвской аппроксимации.
+Преимущество рассматриваемого подхода в том, что решение получается аналитически, а не численно; недостатком является то, что полученное решение может быть не единственно.
+\newpage
+Целью работы является создание программного средства, решающего задачу многокритериальных парных сравнений данным методом.
+
+\section{Постановка задачи}
+\begin{definition}{\textit{Матрицей парных сравнений}}
+	называется положительная матрица $\mathbf{A} = (a_{ij})$, элемент $a_{ij}$ которой показывает, во сколько раз альтернатива $i$ превосходит альтернативу $j$.
 \end{definition}
-\begin{definition}{Согласованной матрицей}
-	называется матрица $\boldsymbol{A} = (a_{ij})$ такая, что выполняется свойство транзитивности. Т.~е.
+\begin{remark}
+	Матрицы парных сравнений являются \textit{кососимметрическими}. То есть, для матрицы $\mathbf{A} = (a_{ij})$ выполняется
+	\[
+	a_{ij} = \nicefrac{1}{a_{ji}}, \quad i,j = 1,\dots,n.
+	\]
+\end{remark}
+\begin{definition}{\textit{Согласованной матрицей}}
+	называется матрица $\mathbf{A} = (a_{ij})$ такая, что выполняется свойство транзитивности. Т.~е.
 	\[
 		a_{ij} = a_{ik}a_{kj}, \quad i,j,k = 1,\dots,n.
 	\]
 \end{definition}
+
 \begin{utv}
-	Необходимым и достаточным условием~\cite{saaty1984} того, что матрица $\boldsymbol{A}$
-	согласованна является существование вектора $\boldsymbol{x}$, называемого \textit{вектором абсолютных приоритетов}, такого, что
+	Необходимым и достаточным условием~\cite{saaty1984} того, что матрица $\mathbf{A}$
+	согласована является существование вектора $\mathbf{x}$, называемого \textit{вектором абсолютных приоритетов}, такого, что
 	\[
 		a_{ij} = x_{i}/x_{j} \quad \forall i, j.
 	\]
 \end{utv}
-На практике, матрицы парных сравнений обычно несогласованны, и поэтому возникает задача приближения матрицы парных сравнений согласованной матрицей.
-Одним из способов решения (т.~н. $\log$-чебышёвская аппроксимация~\cite{krivulin2019}) этой задачи является нахождение вектора $\boldsymbol{x}$, который бы минимизировал следующее выражение
+На практике, матрицы парных сравнений обычно не согласованы, и поэтому возникает задача приближения матрицы парных сравнений согласованной матрицей.
+Одним из способов решения (т.~н. $\log$-чебышёвская аппроксимация~\cite{krivulin2019}) этой задачи является нахождение вектора $\mathbf{x}$, который бы минимизировал следующее выражение
 \[
-	l_{\infty}\left(\boldsymbol{A}, \boldsymbol{x} \boldsymbol{x}^{-}\right)=\max _{1 \leq i, j \leq n}\left|\log a_{i j}-\log \frac{x_{i}}{x_{j}}\right|, \quad \boldsymbol{x}^{-} = \begin{pmatrix}x_1^{-1}&x_2^{-1} & \dots & x_n^{-1}\end{pmatrix},
+	l_{\infty}\left(\mathbf{A}, \mathbf{x} \mathbf{x}^{-}\right)=\max _{1 \leq i, j \leq n}\left|\log a_{i j}-\log \frac{x_{i}}{x_{j}}\right|, \text{ где } \mathbf{x}^{-} = \begin{pmatrix}x_1^{-1}&x_2^{-1} & \dots & x_n^{-1}\end{pmatrix},
 \]
-что сводится к нахождению $\boldsymbol{x}$ такого, что
+Из монотонности логарифма и тождества $|x| = \max(x, -x)$ следует
+
 \[
-	\min _{\boldsymbol{x}>0} \max _{1 \leq i, j \leq n} \frac{a_{i j} x_{j}}{x_{i}}.
+\max _{1 \leq i, j \leq n}\left|\log a_{i j}-\log \frac{x_{i}}{x_{j}}\right| = \log \max_{1 \leq i, j \leq n} \max\left(\frac{a_{ij}x_j}{x_i}, \frac{x_i}{a_{ij}x_j}\right),
 \]
-Данная задача, называемая однокритериальной, может быть решена с использованием идемпотентной алгебры и max-алгебры в частности.
-На языке max-алгебры решение задачи будет выглядеть следующим образом
+а из условия $a_{ij} = \nicefrac{1}{a_{ji}}$
 \[
-	\min _{\boldsymbol{x}>0} \bigoplus_{1 \leq i, j \leq n} x_{i}^{-1} a_{i j} x_{j},
+\max_{1 \leq i, j \leq n} \max\left(\frac{a_{ij}x_j}{x_i}, \frac{x_i}{a_{ij}x_j}\right) = \max_{1 \leq i, j \leq n} \frac{a_{ij}x_j}{x_i}.
 \]
-что можно дополнительно переписать как
+Исходная задача сводится \cite{krivulin2017} к нахождению $\mathbf{x}$ такого, что
 \[
-	\min _{\boldsymbol{x}>0} x^{-} A x.
+	\min _{\mathbf{x}>0} \max _{1 \leq i, j \leq n} \frac{a_{i j} x_{j}}{x_{i}}.
 \]
-
-\begin{definition}{Max-алгебра}
-	есть алгебра над множеством $\mathbb{R}_{+}=\{x \in \mathbb{R} \mid x \geq 0\}$ с операциями ${(\oplus, \times)}$, где $\oplus$ --- это максимум, а $\times$ --- стандартное умножение.
-\end{definition}
-
-\section{Некоторые свойства max-алгебры}
-\begin{enumerate}
-	\item Сложение идемпотентно
-	      \[
-		      x \oplus x = x \quad \forall x \in \mathbb{R}_+.
-	      \]
-	\item Вычитание не определено
-	\item Экстремальное свойство сложения
-	      \[
-		      x \leq x \oplus y,\quad y \leq x \oplus y \quad \forall x, y \in \mathbb{R}_+.
-	      \]
-	\item Изотонность сложения и умножения
-	      \[
-		      x \leq y \Rightarrow x \oplus z \leq y \oplus z,\quad xz \leq yz \quad \forall x,y,z \in \mathbb{R}_+.
-	      \]
-	\item Антитонность обращения
-	      \[
-		      x \leq y \Rightarrow x^{-1} \geq y^{-1} \quad\forall x,y \in \mathbb{R}_+ \setminus \{0\}.
-	      \]
-	\item Эквивалентность неравенств
-	      \[
-		      x \oplus y \leq z \Leftrightarrow x \leq z,\quad y \leq z \quad \forall x,y,z \in \mathbb{R}_+.
-	      \]
-\end{enumerate}
-\section{Некоторые объекты, используемые в решении задачи}
-
-\begin{definition}{Тропический определитель матрицы}
-	\[
-		\Tr \boldsymbol{A} \coloneqq \tr\boldsymbol{A} \oplus \dots \oplus \tr\boldsymbol{A}^n.
-	\]
-\end{definition}
-\begin{definition}{Спектральный радиус}
-	\[
-		\lambda \coloneqq \tr\boldsymbol{A} \oplus \dots \oplus \tr^{1/n}\boldsymbol{A}^n.
-	\]
-\end{definition}
-\begin{definition}{Оператор Клини\\}
-	Если $\Tr \boldsymbol{A} \leq 1$, то оператор Клини определяется следующим образом
-	\[
-		\boldsymbol{A}^* \coloneqq \boldsymbol{I} \oplus \boldsymbol{A} \oplus \dots \oplus \boldsymbol{A}^{n-1}.
-	\]
-\end{definition}
-
-\section{Многокритериальная задача парных сравнений}
-Программное средство, разрабатываемое в рамках этой работы, поддерживает и многокритериальные задачи.
-
-\subsection{Постановка многокритериальной задачи}
-
+Данная задача называется \textit{однокритериальной}. Также существует её обобщение на случай, когда сравнение происходит не по одному критерию, а сразу по нескольким.
 Пусть $n$ альтернатив сравниваются по $m$ критериям.
-Матрица $\boldsymbol{A}_k$ --- матрица попарных сравнений по критерию с номером $k = 1, \dots, n$.
-Матрица $\boldsymbol{C} = (c_{ij})$ --- матрица, показывающая, во сколько раз критерий с номером $i$ важнее критерия с номером $j$. Необходимо построить вектор абсолютных альтернатив по матрицам $\boldsymbol{A}_k$ и $\boldsymbol{C}$.
+Матрица $\mathbf{A}_k$ --- матрица попарных сравнений по критерию с номером $k = 1, \dots, n$.
+Матрица $\mathbf{C} = (c_{ij})$ --- матрица, показывающая, во сколько раз критерий с номером $i$ важнее критерия с номером $j$. Необходимо построить вектор абсолютных приоритетов по матрицам $\mathbf{A}_k$ и $\mathbf{C}$.
 Определим функцию
 $$
-	f_{k}(\boldsymbol{x})=d\left(\boldsymbol{A}_{k}, \boldsymbol{x} \boldsymbol{x}^{-}\right)
+f_{k}(\mathbf{x})=l_{\infty}\left(\mathbf{A}_{k}, \mathbf{x} \mathbf{x}^{-}\right)
 $$ и тогда задача сводится к нахождению
 $$
-	\min _{\boldsymbol{x}>\mathbf{0}}\left(f_{1}(\boldsymbol{x}), \ldots, f_{m}(\boldsymbol{x})\right).
+\min _{\mathbf{x}>\mathbf{0}}\left(f_{1}(\mathbf{x}), \ldots, f_{m}(\mathbf{x})\right).
 $$
 
-В терминах тропической математики задача принимает вид
-$$
-	\min _{\boldsymbol{x}>\mathbf{0}} \boldsymbol{x}^{-} \boldsymbol{A} \boldsymbol{x}, \quad \text { где } \quad \boldsymbol{A}=\bigoplus_{1 \leq k \leq m} w_{k} \boldsymbol{A}_{k},
-$$
-где вектор весов $\boldsymbol{w}=\left(w_{k}\right)$ находится как решение задачи
+Эти задачи могут быть решены с использованием идемпотентной алгебры и max-$\times$ алгебры в частности.
+
+Как уже было сказано ранее, данный метод не гарантирует единственность решения. С одной стороны, такой результат сложнее интерпретировать; с другой, при помощи введения дополнительных объектов --- \textit{наилучшего и наихудшего дифференцирующего вектора}, можно получить дополнительную информацию о множестве решений. Данные векторы будут рассматриваться в дальнейших главах.
+
+\section{Max-$\times$ алгебра}
+
+\begin{definition}
+	\textit{Max-$\times$ алгебра}
+	это алгебра над множеством $\mathbb{R}_{+} = \{x \in \mathbb{R} \mid x \geq 0\}$ с операциями ${(\oplus, \times)}$, где $\oplus$ --- это максимум, а $\times$ --- стандартное умножение.
+\end{definition}
+
+\section{Некоторые свойства max-$\times$ алгебры}
+\begin{enumerate}
+	\item Сложение идемпотентно
+	\[
+	x \oplus x = x \quad \forall x \in \mathbb{R}_+.
+	\]
+	\item Вычитание не определено.
+	\item Экстремальное свойство сложения
+	\[
+	x \leq x \oplus y,\quad y \leq x \oplus y \quad \forall x, y \in \mathbb{R}_+.
+	\]
+	\item Изотонность сложения и умножения
+	\[
+	x \leq y \Rightarrow x \oplus z \leq y \oplus z,\quad xz \leq yz \quad \forall x,y,z \in \mathbb{R}_+.
+	\]
+	\item Антитонность обращения
+	\[
+	x \leq y \Rightarrow x^{-1} \geq y^{-1} \quad\forall x,y \in \mathbb{R}_+ \setminus \{0\}.
+	\]
+	\item Эквивалентность неравенств
+	\[
+	x \oplus y \leq z \Leftrightarrow x \leq z,\quad y \leq z \quad \forall x,y,z \in \mathbb{R}_+.
+	\]
+\end{enumerate}
+\section{Векторная max-$\times$ алгебра}
+Операции max-$\times$ можно естественным образом расширить на векторы и матрицы.
+
+\begin{enumerate}
+	\item Пусть $\textbf{A} = (a_{ij})$ и $\textbf{B} = (b_{ij})$ --- матрицы размерности $m \times n$. Операции сложения и умножения на скаляр $x$ определяются следующим образом
+	\begin{align*}
+		\{\textbf{A}\oplus\textbf{B}\}_{ij} &= a_{ik} \oplus b_{kj}, \\
+		\{x\times\textbf{A}\}_{ij} &= xa_{ij}.
+	\end{align*}
+	\item Пусть $\textbf{A} = (a_{ij})$ --- матрица размерности $m \times n$ и $\textbf{B} = (b_{ij})$ --- матрица размерности $n \times k$. В max-$\times$ алгебре их произведение $\textbf{A}\times\textbf{B}$ определено следующим образом
+	\[
+	  \{\textbf{A}\times\textbf{B}\}_{ij} = \bigoplus_{k=1}^n a_{ik}b_{kj}.
+	\]
+\end{enumerate}
+
+В дальнейшем будут использоваться понятия, определения которых приведём здесь.
+
+\begin{definition}
+Система векторов $(\textbf{a}_1, \textbf{a}_2, \dots, \textbf{a}_n)$ называется \textit{линейно независимой} тогда и только тогда, когда 
+$$\delta(\textbf{A}) = \min _{1 \leq i \leq n} \Delta\left(\mathbf{A}_{(i)}, \mathbf{a}_{i}\right) > 1,$$
+где $\mathbf{A}_{(i)}$ --- матрица $\mathbf{A}$ без $i$-го столбца, $\Delta(\mathbf{A}, \mathbf{b}) \coloneqq \left(\mathbf{A}\left(\mathbf{b}^{-} \mathbf{A}\right)^{-}\right)^{-} \mathbf{b}$, при условии $\textbf{b} > 0$ --- функция невязки.
+\end{definition}
+
+\begin{definition}
+	Пусть $\textbf{A} = (a_{ij})$ --- матрица размерности $n \times n$. \textit{Следом} матрицы $\textbf{A}$ называется величина
+	\[
+	\tr \mathbf{A} \coloneqq \bigoplus_{i=1}^n a_{ii}.
+	\]
+\end{definition}
+
+\begin{definition}{\textit{Тропический определитель} матрицы}
+	\[
+	\Tr \mathbf{A} \coloneqq \tr\mathbf{A} \oplus \dots \oplus \tr\mathbf{A}^n.
+	\]
+
+\end{definition}
+\begin{definition}{\textit{Спектральный радиус} матрицы}
+	\[
+	\lambda \coloneqq \tr\mathbf{A} \oplus \dots \oplus \tr^{1/n}\mathbf{A}^n.
+	\]
+	Степень числа вычисляется стандартным образом, как обратный элемент по умножению.
+\end{definition}
+\begin{definition}{Оператор Клини\\}
+	Если $\Tr \mathbf{A} \leq 1$, то \textit{оператор Клини} определяется следующим образом
+	\[
+	\mathbf{A}^* \coloneqq \mathbf{I} \oplus \mathbf{A} \oplus \dots \oplus \mathbf{A}^{n-1}.
+	\]
+\end{definition}
+
+\section{Представление однокритериальной задачи в max-$\times$ алгебре}
+На языке max-$\times$ алгебры задача будет выглядеть следующим образом
 \[
-	\min _{\boldsymbol{w}>0} \boldsymbol{w}^{-} \boldsymbol{C} \boldsymbol{w}.
+	\min _{\mathbf{x}>0} \bigoplus_{1 \leq i, j \leq n} x_{i}^{-1} a_{i j} x_{j},
+\]
+что в векторной записи эквивалентно решению задачи
+\[
+	\min _{\mathbf{x}>0} \textbf{x}^{-} \textbf{A} \textbf{x}.
+\]
+
+
+
+
+\chapter{Многокритериальная задача парных сравнений}
+%Программное средство, разрабатываемое в рамках этой работы, поддерживает и многокритериальные задачи.
+
+\section{Постановка многокритериальной задачи}
+
+
+
+В терминах max-$\times$ алгебры задача принимает вид
+$$
+	\min _{\mathbf{x}>\mathbf{0}} \mathbf{x}^{-} \mathbf{A} \mathbf{x} \quad \text { при } \quad \mathbf{A}=\bigoplus_{1 \leq k \leq m} w_{k} \mathbf{A}_{k},
+$$
+где вектор весов $\mathbf{w}=\left(w_{k}\right)$ находится как решение задачи
+\[
+	\min _{\mathbf{w}>0} \mathbf{w}^{-} \mathbf{C} \mathbf{w}.
 \]
 Все решения задачи определения весов записываются в виде
 \[
-	\boldsymbol{w} = (\lambda^{-1}\boldsymbol{C})^*\boldsymbol{v}, ~\boldsymbol{v} > 0,
+	\mathbf{w} = (\lambda^{-1}\mathbf{C})^*\mathbf{v}, ~\mathbf{v} > 0,
 \]
-где $\lambda$ --- спектральный радиус матрицы $\boldsymbol{C}$. Аналогично, если $\mu$ --- спектральный радиус матрицы $\boldsymbol{A}$, то все решения задачи оценки рейтингов альтернатив имеют вид:
+где $\lambda$ --- спектральный радиус матрицы $\mathbf{C}$. Аналогично, если $\mu$ --- спектральный радиус матрицы $\mathbf{A}$, то все решения задачи оценки рейтингов альтернатив имеют вид:
 \[
-	\boldsymbol{x} = (\mu^{-1}\boldsymbol{A})^*\boldsymbol{u},~\boldsymbol{u} > 0.
+	\mathbf{x} = (\mu^{-1}\mathbf{A})^*\mathbf{u},~\mathbf{u} > 0.
 \]
 
 
-\subsection{План решения многокритериальной задачи}
+\section{План решения многокритериальной задачи}
 \begin{enumerate}
-	\item По матрице $\boldsymbol{C}$ определяем вектор весов критериев:
+	\item По матрице $\mathbf{C}$ определяем вектор весов критериев:
 	      \[
-		      \boldsymbol{w} = (\mu^{-}\boldsymbol{C})^*\boldsymbol{u},\quad  \boldsymbol{u} > 0,\quad \mu = \tr(\boldsymbol{C_1}) \oplus\ldots\oplus \tr^{1/m}(\boldsymbol{C_m}).
+		      \mathbf{w} = (\mu^{-1}\mathbf{C})^*\mathbf{u},\quad  \mathbf{u} > 0,\quad \mu = \tr(\mathbf{C_1}) \oplus\ldots\oplus \tr^{1/m}(\mathbf{C_m}).
 	      \]
-	\item Если полученный вектор $\boldsymbol{u}$ не единственный, то находятся наихудший и наилучший дифференцирующий вектор весов:
+	\item Если полученный вектор $\mathbf{w}$ не единственный, то находятся наихудший и наилучший дифференцирующий вектор весов:
 	      \[
-		      \boldsymbol{w}_1 = (\delta^-\boldsymbol{11}^\mathrm{T} \oplus \mu^{-1}\boldsymbol{C})^*\boldsymbol{v_1},\quad  \boldsymbol{v_1} > 0,\quad \delta = \boldsymbol{1}^\mathrm{T}(\mu^{-}C)^*\boldsymbol{1},
+		      \mathbf{w}_1 = (\delta^{-1}\mathbf{11}^\mathrm{T} \oplus \mu^{-1}\mathbf{C})^*\mathbf{v_1},\quad  \mathbf{v_1} > 0,\quad \delta = \mathbf{1}^\mathrm{T}(\mu^{-}C)^*\mathbf{1},
 	      \]
 	      и
 	      \[
-		      \boldsymbol{w}_2 =\boldsymbol{P}(\boldsymbol{I}\oplus\boldsymbol{P}^{-}_{lk}\boldsymbol{P})\boldsymbol{v_2},\quad \boldsymbol{v_2} > 0,
+		      \mathbf{w}_2 =\mathbf{P}(\mathbf{I}\oplus\mathbf{P}^{-}_{lk}\mathbf{P})\mathbf{v_2},\quad \mathbf{v_2} > 0,
 	      \]
-	      для которого матрица $\boldsymbol{P}$ получена из матрицы $(\mu^{-1}\boldsymbol{C})^*$ вычеркиванием линейно-зависимых столбцов, матрица $\boldsymbol{P}_{lk}$ --- из матрицы $\boldsymbol{P} = (p_{ij})$ заменой на ноль всех элементов, кроме $p_{lk}$, а индексы $k$ и $l$ определяются, исходя из условий
+	      для которого матрица $\mathbf{P}$ получена из матрицы $(\mu^{-1}\mathbf{C})^*$ вычеркиванием линейно-зависимых столбцов, матрица $\mathbf{P}_{lk}$ --- из матрицы $\mathbf{P} = (p_{ij})$ заменой на ноль всех элементов, кроме $p_{lk}$, а индексы $k$ и $l$ определяются, исходя из условий
 	      \[
-		      k = \underset{j}{\arg\max}~\boldsymbol{1}^\mathrm{T}\boldsymbol{p}_j\boldsymbol{p}^-_j\boldsymbol{1},\quad l = \underset{i}{\arg\max} ~p^{-1}_{ik}.
+		      k = \underset{j}{\arg\max}~\mathbf{1}^\mathrm{T}\mathbf{p}_j\mathbf{p}^-_j\mathbf{1},\quad l = \underset{i}{\arg\max} ~p^{-1}_{ik}.
 	      \]
-	\item С помощью векторов $\boldsymbol{w}_1 = (w^{(1)}_i)$ и $\boldsymbol{w}_2 = (w^{(2)}_i)$ составляются взвешенные
+	\item С помощью векторов $\mathbf{w}_1 = (w^{(1)}_i)$ и $\mathbf{w}_2 = (w^{(2)}_i)$ составляются взвешенные
 	      суммы матриц парных сравнений:
 	      \begin{align*}
-		      \boldsymbol{D}_1 & = w^{(1)}_1\boldsymbol{A_1}\oplus\ldots\oplus w^{(1)}_m\boldsymbol{A_m}, \\
-		      \boldsymbol{D}_2 & =w^{(2)}_1\boldsymbol{A_1}\oplus\ldots\oplus w^{(2)}_m\boldsymbol{A_m}.
+		      \mathbf{D}_1 & = w^{(1)}_1\mathbf{A_1}\oplus\ldots\oplus w^{(1)}_m\mathbf{A_m}, \\
+		      \mathbf{D}_2 & =w^{(2)}_1\mathbf{A_1}\oplus\ldots\oplus w^{(2)}_m\mathbf{A_m}.
 	      \end{align*}
-	\item Вычисляется вектор рейтингов альтернатив для матрицы $\boldsymbol{D_1}$
+	\item Вычисляется вектор рейтингов альтернатив для матрицы $\mathbf{D_1}$
 	      \[
-		      \boldsymbol{x} = (v^{-1}_1\boldsymbol{D_1})^*\boldsymbol{u}_1,\quad \boldsymbol{u}_1 > 0,\quad v_1 = \tr\boldsymbol{D}_1\oplus\dots\oplus \tr^{1/n}\boldsymbol{D}_1^n.
+		      \mathbf{x} = (v^{-1}_1\mathbf{D_1})^*\mathbf{u}_1,\quad \mathbf{u}_1 > 0,\quad v_1 = \tr\mathbf{D}_1\oplus\dots\oplus \tr^{1/n}\mathbf{D}_1^n.
 	      \]
 	\item Если полученный вектор не единственный, то вместо него ищется наихудший дифференцирующий вектор
 	      \[
-		      \boldsymbol{x}_1 = (\delta^{-1}_1\boldsymbol{11}^\mathrm{T}\oplus v^{-1}_1\boldsymbol{D}_1)^*\boldsymbol{u_1},\quad \boldsymbol{u}_1 > 0,\quad \delta_1 = \boldsymbol{1}^\mathrm{T}(v^{-1}\boldsymbol{D_1})^*\boldsymbol{1}.
+		      \mathbf{x}_1 = (\delta^{-1}_1\mathbf{11}^\mathrm{T}\oplus v^{-1}_1\mathbf{D}_1)^*\mathbf{u_1},\quad \mathbf{u}_1 > 0,\quad \delta_1 = \mathbf{1}^\mathrm{T}(v^{-1}\mathbf{D_1})^*\mathbf{1}.
 	      \]
-	\item Вычисляется вектор рейтингов альтернатив для матрицы $\boldsymbol{D_2}$
+	\item Вычисляется вектор рейтингов альтернатив для матрицы $\mathbf{D_2}$
 	      \[
-		      \boldsymbol{x}_2 = (v^{-1}_2\boldsymbol{D}_2)^*\boldsymbol{u}_2,\quad \boldsymbol{u_2} > 0,\quad v_2 = \tr\boldsymbol{D}_2\oplus\ldots\oplus\tr^{1/n}(\boldsymbol{D}^n_2).
+		      \mathbf{x}_2 = (v^{-1}_2\mathbf{D}_2)^*\mathbf{u}_2,\quad \mathbf{u_2} > 0,\quad v_2 = \tr\mathbf{D}_2\oplus\ldots\oplus\tr^{1/n}(\mathbf{D}^n_2).
 	      \]
 
 	\item Если этот вектор не единственный, то вместо него рассматриваем наилучший дифференцирующий вектор
 	      \[
-		      \boldsymbol{x}_2 =\boldsymbol{S}(\boldsymbol{I}\oplus\boldsymbol{S}^-_{lk}\boldsymbol{S})\boldsymbol{u}_2,~ \boldsymbol{u}_2 > 0,
+		      \mathbf{x}_2 =\mathbf{S}(\mathbf{I}\oplus\mathbf{S}^-_{lk}\mathbf{S})\mathbf{u}_2,~ \mathbf{u}_2 > 0,
 	      \]
 
-	      где матрица $\boldsymbol{S}$ получена из матрицы $(v^{-1}_2\boldsymbol{D}_2)^*$ вычеркиванием линейно-зависимых столбцов, матрица $\boldsymbol{S}^-_{lk}$ --- из матрицы $S = (s_{ij})$ обращением
+	      где матрица $\mathbf{S}$ получена из матрицы $(v^{-1}_2\mathbf{D}_2)^*$ вычеркиванием линейно-зависимых столбцов, матрица $\mathbf{S}^-_{lk}$ --- из матрицы $S = (s_{ij})$ обращением
 	      в нуль всех элементов, кроме $s_{lk}$, а индексы $k$ и $l$ определяются, исходя из условий
 	      \[
-		      k = \underset{j}{\arg\max}~\boldsymbol{1}^\mathrm{T}\boldsymbol{s}_j\boldsymbol{s}^-_j\boldsymbol{1},~l = \underset{i}{\arg\max} ~s^-_{ik}.
+		      k = \underset{j}{\arg\max}~\mathbf{1}^\mathrm{T}\mathbf{s}_j\mathbf{s}^-_j\mathbf{1},~l = \underset{i}{\arg\max} ~s^-_{ik}.
 	      \]
 \end{enumerate}
 
-
+\chapter{Разработка программных средств}
 \section{Цель работы}
 Требуется написать библиотеку и программу на языке \texttt{C++}, символьно решающую одно- и многокритериальную задачу принятия решений методом log-чебышёвской аппроксимации в max-алгебре.
-
-\chapter{Ход работы}
 \section{Выполнено}
 \begin{enumerate}
 	\item Было написано расширение для библиотеки линейной алгебры \texttt{Eigen} \cite{eigenweb} (версия 3.3.8), позволяющее работать с символьными вычислениями в max-алгебре.
+	Для работы с символьными вычислениями использовалась библиотека \texttt{GiNaC} \cite{ginac_2006} (версия 1.8.0).
 	\item Был реализован ряд функций, используемых в алгоритме решения задачи. Таких как
-        нахождение тропического определителя, спектрального радиуса, оператор Клини, нахождение линейнонезависимых векторов и других.
-	\item Задача многокритериального сравнения может быть решена при помощи библиотеки.
+        нахождение тропического определителя, спектрального радиуса, оператор Клини, нахождение линейно независимых векторов и других.
+	\item Задача одно- и многокритериального сравнения может быть полностью решена при помощи библиотеки.
 \end{enumerate}
 
 \section{Пример решения многокритериальной задачи}
 \subsection{Условие}
 
 \[
-	\boldsymbol{C} = \begin{pmatrix}
+	\mathbf{C} = \begin{pmatrix}
 		1 & 1/3 \\
 		3 & 1
 	\end{pmatrix}, \quad
-	\boldsymbol{A}_1 = \begin{pmatrix}
+	\mathbf{A}_1 = \begin{pmatrix}
 		1   & 3 & 1/3 \\
 		1/3 & 1 & 1   \\
 		3   & 1 & 1
 	\end{pmatrix}, \quad
-	\boldsymbol{A}_2 =  \begin{pmatrix}
+	\mathbf{A}_2 =  \begin{pmatrix}
 		1   & 1/3 & 5 \\
 		3   & 1   & 7 \\
 		1/5 & 1/7 & 1
 	\end{pmatrix}.
 \]
 \subsection{Решение}
-Найдём спектральный радиус матрицы \(\boldsymbol{C}\):
+Найдём спектральный радиус матрицы \(\mathbf{C}\):
 
 \[
-	\lambda=\bigoplus_{k=1}^{2} \tr^{1 / k}\left(\boldsymbol{C}^{k}\right) = \tr\boldsymbol{C} \oplus \sqrt{\tr\boldsymbol{C}^2} =
+	\lambda=\bigoplus_{k=1}^{2} \tr^{1 / k}\left(\mathbf{C}^{k}\right) = \tr\mathbf{C} \oplus \sqrt{\tr\mathbf{C}^2} =
 	\tr\begin{pmatrix}1&1/3\\3&1\end{pmatrix} \oplus \sqrt{\tr\begin{pmatrix}1&1/3\\3&1\end{pmatrix}} = 1.
 \]
-В нашем случае, матрица Клини равна самой матрице \(\boldsymbol{C}\).
+В нашем случае, матрица Клини равна самой матрице \(\mathbf{C}\).
 \[
-	\boldsymbol{C}^* = I \oplus \boldsymbol{C} = \boldsymbol{C}.
+	\mathbf{C}^* = \mathbf{I} \oplus \mathbf{C} = \mathbf{C}.
 \]
 Тогда
 \[
-	(\lambda^{-1}\boldsymbol{C})^*\boldsymbol{v} = (\lambda^{-1})\boldsymbol{C}\boldsymbol{v} = \boldsymbol{C}\boldsymbol{v}, \quad \boldsymbol{v} > 0.
+	(\lambda^{-1}\mathbf{C})^*\mathbf{v} = (\lambda^{-1})\mathbf{C}\mathbf{v} = \mathbf{C}\mathbf{v}, \quad \mathbf{v} > 0.
 \]
 Столбцы матрицы коллинеарны, поэтому просто возьмём первый из них. Вектор весов критериев
 \[
-	\boldsymbol{w} = \begin{pmatrix}1 & 3\end{pmatrix}.
+	\mathbf{w} = \begin{pmatrix}1 & 3\end{pmatrix}.
 \]
-Вычислим матрицу \(\boldsymbol{B}\):
+Вычислим матрицу \(\mathbf{B}\):
 \[
-	\boldsymbol{B}=\bigoplus_{k=1}^{2} w_{k} \boldsymbol{A}_{k} = \begin{pmatrix}1&3&1/3\\1/3&1&1\\3&1&1\end{pmatrix} \oplus 3\begin{pmatrix}1&1/3&5\\3&1&7\\1/5&1/7&1\end{pmatrix} = \begin{pmatrix}3&3&15\\ 9&3&21\\ 3&1&3\\\end{pmatrix}.
+	\mathbf{B}=\bigoplus_{k=1}^{2} w_{k} \mathbf{A}_{k} = \begin{pmatrix}1&3&1/3\\1/3&1&1\\3&1&1\end{pmatrix} \oplus 3\begin{pmatrix}1&1/3&5\\3&1&7\\1/5&1/7&1\end{pmatrix} = \begin{pmatrix}3&3&15\\ 9&3&21\\ 3&1&3\\\end{pmatrix}.
 \]
 Спектральный радиус этой матрицы равен \(\mu = \sqrt{45}\).
 Тогда вектор рейтингов альтернатив:
 \begin{align*}
-	\boldsymbol{x} = \boldsymbol{S}\boldsymbol{u} = \left(\frac{1}{\sqrt{45}}B\right)^*\boldsymbol{u} & =
-	\boldsymbol{I} \oplus \frac{1}{\sqrt{45}} \boldsymbol{B} \oplus (\frac{1}{\sqrt{45}} \boldsymbol{B})^2 =
-	\begin{pmatrix}1& 0& 0\\0& 1& 0\\0& 0& 1\end{pmatrix}
+	\mathbf{x} = \mathbf{S}\mathbf{u} = \left(\frac{1}{\sqrt{45}}B\right)^*\mathbf{u} & =
+	\mathbf{I} \oplus \frac{1}{\sqrt{45}} \mathbf{B} \oplus (\frac{1}{\sqrt{45}} \mathbf{B})^2 = \\
+	&=\begin{pmatrix}1& 0& 0\\0& 1& 0\\0& 0& 1\end{pmatrix}
 	\oplus
 	\begin{pmatrix}
 		1/\sqrt{5} & 1/\sqrt{5}     & \sqrt{5}   \\
 		3/\sqrt{5} & 1/\sqrt{5}     & 7/\sqrt{5} \\
 		1/\sqrt{5} & 1/(3 \sqrt{5}) & 1/\sqrt{5} \\
-	\end{pmatrix}                                          \\
+	\end{pmatrix}   \oplus                                      \\
 	                                                           & \oplus
 	\begin{pmatrix}1& 1/3& 7/5\\7/5& 3/5& 3\\1/5& 1/5& 1\end{pmatrix} =
-	\begin{pmatrix} 1&1/\sqrt{5}&\sqrt{5}\\ 7/5&1&7/\sqrt{5}\\ 1/\sqrt{5}&1/5&1 \end{pmatrix}\boldsymbol{u}.
+	\begin{pmatrix} 1&1/\sqrt{5}&\sqrt{5}\\ 7/5&1&7/\sqrt{5}\\ 1/\sqrt{5}&1/5&1 \end{pmatrix}\mathbf{u}.
 \end{align*}
 
 Здесь только первый и второй столбцы являются линейно независимыми, значит будем искать наихудший и наилучший дифференцирующий вектор.
 
 \subsubsection{Наихудший дифференцирующий вектор}
 \[
-	\delta = 1^\mathrm{T}(\mu^{-1}\boldsymbol{B})^*1 = 7/\sqrt{5}.
+	\delta = \mathbf{1}^\mathrm{T}(\mu^{-1}\mathbf{B})^*\mathbf{1} = 7/\sqrt{5}.
 \]
 
 \begin{align*}
-	\boldsymbol{x_2} & = (\delta^{-1}\boldsymbol{1}\boldsymbol{1}^\mathrm{T} \oplus \mu^{-1}\boldsymbol{B})^*\boldsymbol{u} = \begin{pmatrix}\sqrt{45}/15 & \sqrt{45}/15 & \sqrt{45}/3\\ \sqrt{45}/5 & \sqrt{45}/15 & 7\sqrt{45}/15 \\ \sqrt{45}/15 & \sqrt{45}/45 & \sqrt{45}/15 \end{pmatrix}^*u =                   \\
-	                 & = \boldsymbol{I} \oplus (\delta^{-1}\boldsymbol{1}\boldsymbol{1}^\mathrm{T} \oplus \mu^{-1}\boldsymbol{B}) \oplus (\delta^{-1}\boldsymbol{1}\boldsymbol{1}^\mathrm{T} \oplus \mu^{-1}\boldsymbol{B})^2 = \\
+	\mathbf{x_2} & = (\delta^{-1}\mathbf{1}\mathbf{1}^\mathrm{T} \oplus \mu^{-1}\mathbf{B})^*\mathbf{u} = \begin{pmatrix}\sqrt{45}/15 & \sqrt{45}/15 & \sqrt{45}/3\\ \sqrt{45}/5 & \sqrt{45}/15 & 7\sqrt{45}/15 \\ \sqrt{45}/15 & \sqrt{45}/45 & \sqrt{45}/15 \end{pmatrix}^*u =                   \\
+	                 & = \mathbf{I} \oplus (\delta^{-1}\mathbf{1}\mathbf{1}^\mathrm{T} \oplus \mu^{-1}\mathbf{B}) \oplus (\delta^{-1}\mathbf{1}\mathbf{1}^\mathrm{T} \oplus \mu^{-1}\mathbf{B})^2 = \\
 	                 & = \begin{pmatrix} 1&0&0 \\ 0&1&0 \\ 0&0&1 \end{pmatrix}
 	\oplus
 	\begin{pmatrix}1/\sqrt{5}&1/\sqrt{5}&\sqrt{5}\\3/\sqrt{5}&1/\sqrt{5}&7/\sqrt{5}\\1/\sqrt{5}&3\sqrt{5}/7&1/\sqrt{5}\end{pmatrix}
 	\oplus
-	\begin{pmatrix}1&5/7&7/5\\7/5&1&3\\3/7&1/5&1\end{pmatrix}                                                                                     \\
-	                 & = \begin{pmatrix} 1&5/7&\sqrt{5}\\ 7/5&1&7/\sqrt{5}\\ 1/\sqrt{5}&\sqrt{5}/7&1 \end{pmatrix}\boldsymbol{u}, \quad \boldsymbol{u} > 0.
+	\begin{pmatrix}1&5/7&7/5\\7/5&1&3\\3/7&1/5&1\end{pmatrix}             =                                                                        \\
+	                 & = \begin{pmatrix} 1&5/7&\sqrt{5}\\ 7/5&1&7/\sqrt{5}\\ 1/\sqrt{5}&\sqrt{5}/7&1 \end{pmatrix}\mathbf{u}, \quad \mathbf{u} > 0.
 \end{align*}
 
 Тут все столбцы коллинеарны. Возьмём первый и нормируем:
@@ -289,33 +399,34 @@ $$
 Порядок альтернатив: (\Romannum{2}) \(\succ\) (\Romannum{1}) \(\succ\) (\Romannum{3}).
 \subsubsection{Наилучший дифференцирующий вектор}
 \label{sec:org896b7a9}
-Найденный нами наихудший дифференцирующий вектор, это первый столбец матрицы $\boldsymbol{S}$. Можем предположить, что наилучший дифференцирующий вектор окажется вторым столбцом этой матрицы. Давайте это проверим.
+Найденный нами наихудший дифференцирующий вектор, это первый столбец матрицы $\mathbf{S}$. Можем предположить, что наилучший дифференцирующий вектор окажется вторым столбцом этой матрицы. Давайте это проверим.
 
-Из предыдущего получили, что \(\boldsymbol{S} = \begin{pmatrix}1&1/\sqrt{5}\\7/5&1\\1/\sqrt{5}&1/5\end{pmatrix}\).
+Из предыдущего получили, что \(\mathbf{S} = \begin{pmatrix}1&1/\sqrt{5}\\7/5&1\\1/\sqrt{5}&1/5\end{pmatrix}\).
 Для нахождения наилучшего дифференцирующего вектора найдём число \(\Delta\):
 
 \[
-	\Delta = \mathbf{1}^\mathrm{T} \boldsymbol{S} \boldsymbol{S}^{-} \mathbf{1} = \begin{pmatrix}7/5&1\end{pmatrix}\begin{pmatrix}\sqrt{5}\\5\end{pmatrix} = 5.
+	\Delta = \mathbf{1}^\mathrm{T} \mathbf{S} \mathbf{S}^{-} \mathbf{1} = \begin{pmatrix}7/5&1\end{pmatrix}\begin{pmatrix}\sqrt{5}\\5\end{pmatrix} = 5.
 \]
 Все наилучшие дифференцирующие решения имеют вид
 
 \[
-	\boldsymbol{x}_{1}=\boldsymbol{S}\left(\boldsymbol{I} \oplus \boldsymbol{S}_{l k}^{-} \boldsymbol{S}\right) \boldsymbol{v}, \quad \boldsymbol{v}>\mathbf{0},
+	\mathbf{x}_{1}=\mathbf{S}\left(\mathbf{I} \oplus \mathbf{S}_{l k}^{-} \mathbf{S}\right) \mathbf{v}, \quad \mathbf{v}>\mathbf{0},
 \]
 где индексы \(k\) и \(l\) определяются из условия
 
 \[
-	\mathbf{1}^\mathrm{T} \boldsymbol{s}_{k} s_{l k}^{-1}=\Delta = 5.
+	\mathbf{1}^\mathrm{T} \mathbf{s}_{k} s_{l k}^{-1}=\Delta = 5.
 \]
 Это условие выполняется только при \(k=2\) и \(l=3\). Тогда наилучшие решения генерируют столбцы матрицы:
 
 \begin{align*}
-	\boldsymbol{x}_{1} & =\boldsymbol{S}\left(\boldsymbol{I} \oplus \boldsymbol{S}_{3,2}^{-} \boldsymbol{S}\right) \boldsymbol{v} = \begin{pmatrix}1&1/\sqrt{5}\\7/5&1\\1/\sqrt{5}&1/5\end{pmatrix} \left( \begin{pmatrix}1&0\\0&1\end{pmatrix} \oplus \begin{pmatrix}0&0&0\\0&0&5\end{pmatrix}\begin{pmatrix}1&  1/\sqrt{5}\\7/5&1\\1/\sqrt{5}&1/5\end{pmatrix} \right)\boldsymbol{v} \\
-	                   & = \begin{pmatrix}1&1/\sqrt{5}\\\sqrt{5}&1\\1/\sqrt{5}&1/5\end{pmatrix}\boldsymbol{v}.
+	\mathbf{x}_{1} & =\mathbf{S}\left(\mathbf{I} \oplus \mathbf{S}_{3,2}^{-} \mathbf{S}\right) \mathbf{v} = \\ 
+	&= \begin{pmatrix}1&1/\sqrt{5}\\7/5&1\\1/\sqrt{5}&1/5\end{pmatrix} \left( \begin{pmatrix}1&0\\0&1\end{pmatrix} \oplus \begin{pmatrix}0&0&0\\0&0&5\end{pmatrix}\begin{pmatrix}1&  1/\sqrt{5}\\7/5&1\\1/\sqrt{5}&1/5\end{pmatrix} \right)\mathbf{v} = \\
+	                   & = \begin{pmatrix}1&1/\sqrt{5}\\\sqrt{5}&1\\1/\sqrt{5}&1/5\end{pmatrix}\mathbf{v}.
 \end{align*}
 Столбцы этой матрицы коллинеарны, возьмём второй.
 
-Как и предполагалось, наилучший дифференцирующий вектор коллинеарен второму столбцу матрицы \(\boldsymbol{S}\).
+Как и предполагалось, наилучший дифференцирующий вектор коллинеарен второму столбцу матрицы \(\mathbf{S}\).
 
 \[
 	x_1 = \begin{pmatrix}
@@ -442,7 +553,7 @@ MaxTimes operator/(const MaxTimes& lhs, const MaxTimes& rhs);
 \begin{enumerate}
   \setcounter{enumi}{2}
 		\item Расширение для библиотеки \texttt{Eigen}, позволяющее использовать \texttt{MaxAlgebra<T>} в качестве элементов матрицы.
-		\item Набор функций, участвующих в алгоритме решения задачи: нахождение тропического определителя, спектрального радиуса, оператор Клини, нахождение линейнонезависимых векторов и т. д.
+		\item Набор функций, участвующих в алгоритме решения задачи: нахождение тропического определителя, спектрального радиуса, оператор Клини, нахождение линейно независимых векторов и т. д.
 \end{enumerate}
 \subsection{Список реализованных функций}
 
@@ -452,14 +563,17 @@ MaxTimes operator/(const MaxTimes& lhs, const MaxTimes& rhs);
 	\item Функции, необходимые в решении задачи: спектральный радиус, получение матрицы Клини, нахождение коэффициентов в задаче нахождение наилучшего дифференцирующего вектора.
 \end{enumerate}
 
-
+%BEGIN_FOLD
 \conclusion
-\section{Планируется сделать}
-\begin{enumerate}
-	\item Сделать более удобный интерфейс.
-	\item Протестировать скорость работы программы относительно существующих решений.
-\end{enumerate}
+В ходе данной работы были изучены различные методы решения задач принятия решений в одно- и многокритериальной постановке.
 
+На языке \texttt{C++} с применением библиотек \texttt{Eigen} и \texttt{GiNaC} было разработано программной средство (библиотека и программа), реализующее как математический аппарат max-$\times$ алгебры, так и метод log-чебышёвской аппроксимации. Полные программные коды, распространяемые под свободной лицензией, находятся на сайте \url{https://github.com/isheshukov/vkr-2021}.
+
+Разработанное средство обеспечивает возможность полного решения задачи.
+Результаты, полученные в результате работы программы совпадают с результатами, полученными ручным подсчётом по данному методу.
+
+-
+%END_FOLD
 \addcontentsline{toc}{chapter}{Список литературы}
 \printbibliography
 
@@ -530,7 +644,7 @@ Spectral radius of C = 10
 \subsubsection{Условие}
 $$
 	\begin{array}{l}
-		\boldsymbol{C}=\left(\begin{array}{cccccc}
+		\mathbf{C}=\left(\begin{array}{cccccc}
 				1     & 1 / 4 & 1 / 5 & 1 / 4 & 6 & 1 / 6 \\
 				4     & 1     & 1 / 3 & 3     & 6 & 1 / 2 \\
 				5     & 3     & 1     & 4     & 7 & 3     \\
@@ -538,28 +652,28 @@ $$
 				1 / 6 & 1 / 6 & 1 / 7 & 1 / 5 & 1 & 1 / 7 \\
 				6     & 2     & 1 / 3 & 5     & 7 & 1
 			\end{array}\right)                                                                                                                \\
-		\boldsymbol{A}_{1}=\left(\begin{array}{ccc}
+		\mathbf{A}_{1}=\left(\begin{array}{ccc}
 				1     & 5     & 8 \\
 				1 / 5 & 1     & 5 \\
 				1 / 8 & 1 / 5 & 1
-			\end{array}\right), \quad \boldsymbol{A}_{2}=\left(\begin{array}{ccc}
+			\end{array}\right), \quad \mathbf{A}_{2}=\left(\begin{array}{ccc}
 				1     & 7     & 9 \\
 				1 / 7 & 1     & 7 \\
 				1 / 9 & 1 / 7 & 1
-			\end{array}\right), \quad \boldsymbol{A}_{3}=\left(\begin{array}{ccc}
+			\end{array}\right), \quad \mathbf{A}_{3}=\left(\begin{array}{ccc}
 				1 & 1 / 7 & 1 / 9 \\
 				7 & 1     & 1 / 7 \\
 				9 & 7     & 1
 			\end{array}\right), \\
-		\boldsymbol{A}_{4}=\left(\begin{array}{ccc}
+		\mathbf{A}_{4}=\left(\begin{array}{ccc}
 				1     & 3     & 5 \\
 				1 / 3 & 1     & 4 \\
 				1 / 5 & 1 / 4 & 1
-			\end{array}\right), \quad \boldsymbol{A}_{5}=\left(\begin{array}{ccc}
+			\end{array}\right), \quad \mathbf{A}_{5}=\left(\begin{array}{ccc}
 				1     & 3     & 5 \\
 				1 / 3 & 1     & 4 \\
 				1 / 5 & 1 / 4 & 1
-			\end{array}\right), \quad \boldsymbol{A}_{6}=\left(\begin{array}{ccc}
+			\end{array}\right), \quad \mathbf{A}_{6}=\left(\begin{array}{ccc}
 				1     & 7     & 9 \\
 				1 / 7 & 1     & 7 \\
 				1 / 9 & 1 / 7 & 1
