@@ -1,0 +1,11 @@
+prefix=/opt/x86_64-w64-mingw32
+exec_prefix=/opt/x86_64-w64-mingw32
+libdir=/opt/x86_64-w64-mingw32/lib
+includedir=/opt/x86_64-w64-mingw32/include
+
+Name: cln
+Description: Class Library for Numbers
+Version: 1.3.6
+Libs:  -L${libdir} -lcln
+Libs.private:  -lgmp
+Cflags: -I${includedir}

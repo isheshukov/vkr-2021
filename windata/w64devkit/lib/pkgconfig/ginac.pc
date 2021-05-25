@@ -1,0 +1,11 @@
+prefix=/opt/x86_64-w64-mingw32
+exec_prefix=/opt/x86_64-w64-mingw32
+libdir=/opt/x86_64-w64-mingw32/lib
+includedir=/opt/x86_64-w64-mingw32/include
+
+Name: GiNaC
+Description: C++ library for symbolic calculations
+Version: 1.7.8
+Requires: cln >= 1.2.2
+Libs: -L${libdir} -lginac 
+Cflags: -I${includedir}
